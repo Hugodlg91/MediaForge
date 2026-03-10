@@ -179,3 +179,7 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 ### Étape 3
 - **`img.dimensions()` introuvable** : méthode du trait `GenericImageView` non importé. **Fix** : utiliser `img.width()` et `img.height()` (méthodes directes de `DynamicImage`).
 - **AVIF écarté** : la feature `avif` de la crate `image` tire `libdav1d` qui nécessite NASM sur Windows. Contournement : utiliser uniquement PNG/JPG/WEBP/BMP/TIFF. AVIF peut être ajouté plus tard via `avif-encoder` (pure Rust, encoding uniquement).
+
+### Étape 10
+- **`missing required key inputPath`** : Les commandes Tauri v2 attendent les arguments en `camelCase` par défaut (ex: `inputPath`), mais notre typage JS passait les objets en `snake_case` (`input_path`). **Fix** : Ajout de l'attribut `#[tauri::command(rename_all = "snake_case")]` sur l'ensemble des commandes Rust dans `lib.rs`.
+- **Nouveau Build** : L'installeur a été régénéré avec succès pour inclure la refonte graphique (palette violette #7c6aff, typographies DM Mono / Syne, etc).

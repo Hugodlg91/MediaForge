@@ -183,7 +183,7 @@ async fn run_ffmpeg(
 
 // ─── Commands ────────────────────────────────────────────────────────────────
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn convert_video(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
@@ -226,7 +226,7 @@ async fn convert_video(
     run_ffmpeg(app, slot, args, output_path).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn convert_audio(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
@@ -263,7 +263,7 @@ async fn convert_audio(
     run_ffmpeg(app, slot, args, output_path).await
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn cancel_conversion(state: tauri::State<'_, AppState>) -> Result<(), String> {
     let mut guard = state
         .current_process
@@ -275,7 +275,7 @@ async fn cancel_conversion(state: tauri::State<'_, AppState>) -> Result<(), Stri
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn get_media_info(
     app: tauri::AppHandle,
     input_path: String,
@@ -492,7 +492,7 @@ fn process_single_image(
 
 // ─── Image commands ───────────────────────────────────────────────────────────
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn convert_image(
     app: tauri::AppHandle,
     input_path: String,
@@ -520,7 +520,7 @@ async fn convert_image(
     Ok(out)
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn convert_images_batch(
     app: tauri::AppHandle,
     files: Vec<BatchImageItem>,
@@ -575,7 +575,7 @@ async fn convert_images_batch(
     Ok(results)
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn get_image_info(input_path: String) -> Result<ImageInfo, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let file_size = std::fs::metadata(&input_path)
@@ -621,7 +621,7 @@ async fn get_image_info(input_path: String) -> Result<ImageInfo, String> {
 
 // ─── Video batch ─────────────────────────────────────────────────────────────
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn convert_video_batch(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
@@ -706,7 +706,7 @@ async fn convert_video_batch(
 
 // ─── Audio batch ──────────────────────────────────────────────────────────────
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn convert_audio_batch(
     app: tauri::AppHandle,
     state: tauri::State<'_, AppState>,
@@ -811,7 +811,7 @@ impl Default for Settings {
     }
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn get_settings(app: tauri::AppHandle) -> Result<Settings, String> {
     let store = app.store("settings.json").map_err(|e| e.to_string())?;
     let d = Settings::default();
@@ -835,7 +835,7 @@ async fn get_settings(app: tauri::AppHandle) -> Result<Settings, String> {
     Ok(Settings { language, theme, output_dir, default_video_format, default_audio_format, default_image_format })
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn save_settings(app: tauri::AppHandle, settings: Settings) -> Result<(), String> {
     let store = app.store("settings.json").map_err(|e| e.to_string())?;
     store.set("language", serde_json::json!(settings.language));
@@ -851,7 +851,7 @@ async fn save_settings(app: tauri::AppHandle, settings: Settings) -> Result<(), 
 // ─── Folder opener ───────────────────────────────────────────────────────────
 
 /// Open the parent folder of the given file path in the native file manager.
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn open_folder(app: tauri::AppHandle, file_path: String) -> Result<(), String> {
     use tauri_plugin_opener::OpenerExt;
     let path = std::path::Path::new(&file_path);
@@ -879,7 +879,7 @@ pub struct HistoryItem {
 const HISTORY_KEY: &str = "items";
 const HISTORY_MAX: usize = 50;
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn get_history(app: tauri::AppHandle) -> Result<Vec<HistoryItem>, String> {
     let store = app.store("history.json").map_err(|e| e.to_string())?;
     let items: Vec<HistoryItem> = store
@@ -892,7 +892,7 @@ async fn get_history(app: tauri::AppHandle) -> Result<Vec<HistoryItem>, String> 
     Ok(items)
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn add_history_item(app: tauri::AppHandle, item: HistoryItem) -> Result<(), String> {
     let store = app.store("history.json").map_err(|e| e.to_string())?;
     let mut items: Vec<HistoryItem> = store
@@ -906,7 +906,7 @@ async fn add_history_item(app: tauri::AppHandle, item: HistoryItem) -> Result<()
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn clear_history(app: tauri::AppHandle) -> Result<(), String> {
     let store = app.store("history.json").map_err(|e| e.to_string())?;
     store.set(HISTORY_KEY, serde_json::json!([]));
@@ -914,7 +914,7 @@ async fn clear_history(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "snake_case")]
 async fn open_file(app: tauri::AppHandle, path: String) -> Result<(), String> {
     use tauri_plugin_opener::OpenerExt;
     app.opener()
