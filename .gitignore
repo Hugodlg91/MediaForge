@@ -26,3 +26,5 @@ src-tauri/binaries/ffprobe-*
 *.njsproj
 *.sln
 *.sw?
+
+.claude
