@@ -253,12 +253,11 @@ export function VideoConverter() {
       <div className="flex items-center justify-between">
         <div>
           <h2
-            className="text-gray-100 text-xl font-bold tracking-tight"
-            style={{ fontFamily: "'Syne', sans-serif" }}
+            style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.02em", color: "var(--text)" }}
           >
             {t("nav.video")}
           </h2>
-          <p className="text-[10px] text-gray-500 tracking-widest mt-0.5">100% LOCAL</p>
+          <p style={{ fontSize: "11px", color: "var(--muted)", letterSpacing: "0.04em", marginTop: "2px" }}>100% LOCAL — AUCUNE DONNEE ENVOYEE</p>
         </div>
         <div className="flex bg-gray-800 border border-gray-700 rounded-lg p-0.5 text-xs">
           <button
@@ -287,18 +286,18 @@ export function VideoConverter() {
           >
             {inputPath ? (
               <>
-                <span className="text-3xl">🎬</span>
+                <div style={{ width:"48px",height:"48px",borderRadius:"8px",background:"var(--accent-dim)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"9px",fontWeight:700,color:"var(--accent)",letterSpacing:"0.06em",flexShrink:0 }}>VID</div>
                 <p className="text-white text-sm font-medium text-center break-all">
                   {inputPath.split(/[\\/]/).pop()}
                 </p>
                 {mediaInfo && (
                   <div className="flex flex-wrap gap-3 justify-center text-xs text-gray-400 mt-1">
-                    {mediaInfo.duration > 0 && <span>⏱ {formatDuration(mediaInfo.duration)}</span>}
+                    {mediaInfo.duration > 0 && <span>{formatDuration(mediaInfo.duration)}</span>}
                     {mediaInfo.width && mediaInfo.height && (
-                      <span>📐 {mediaInfo.width}×{mediaInfo.height}</span>
+                      <span>{mediaInfo.width}x{mediaInfo.height}</span>
                     )}
-                    {mediaInfo.video_codec && <span>🎞 {mediaInfo.video_codec}</span>}
-                    <span>💾 {formatFileSize(mediaInfo.file_size)}</span>
+                    {mediaInfo.video_codec && <span>{mediaInfo.video_codec}</span>}
+                    <span>{formatFileSize(mediaInfo.file_size)}</span>
                   </div>
                 )}
                 {!isConverting && (
@@ -307,10 +306,10 @@ export function VideoConverter() {
               </>
             ) : (
               <>
-                <span className="text-4xl">🎬</span>
-                <p className="text-gray-300 text-sm font-medium">{t("dropzone.label")}</p>
-                <p className="text-gray-500 text-xs">
-                  {t("converter.dropzone_sub", { formats: VIDEO_FORMATS.join(", ").toUpperCase() })}
+                <div style={{ width:"48px",height:"48px",borderRadius:"10px",background:"var(--accent-dim)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"22px",color:"var(--accent)",fontWeight:200 }}>+</div>
+                <p style={{ fontSize:"13px",fontWeight:500,color:"var(--text)" }}>{t("dropzone.label")}</p>
+                <p style={{ fontSize:"12px",color:"var(--muted)" }}>
+                  {t("converter.dropzone_sub", { formats: VIDEO_FORMATS.join(" · ").toUpperCase() })}
                 </p>
               </>
             )}
@@ -350,15 +349,8 @@ export function VideoConverter() {
               onFilesDropped={handleBatchFilesAdded}
               allowedExtensions={[...VIDEO_FORMATS]}
               multiple={true}
-            >
-              <span className="text-2xl">🎬</span>
-              <span className="text-gray-400 text-sm">
-                {batchFiles.length > 0
-                  ? t("batch.fileCount", { count: batchFiles.length })
-                  : t("dropzone.label")}
-              </span>
-              <span className="text-xs text-indigo-400">{t("dropzone.browse")}</span>
-            </DropZone>
+              formats={VIDEO_FORMATS.join(" · ").toUpperCase()}
+            />
           )}
 
           <MediaBatchFileList

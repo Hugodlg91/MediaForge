@@ -9,7 +9,7 @@
     <script>
       (function () {
         var t = localStorage.getItem("mf-theme");
-        if (!t || t === "dark") document.documentElement.classList.add("dark");
+        document.documentElement.setAttribute("data-theme", (!t || t === "dark") ? "dark" : "light");
       })();
     </script>
   </head>

@@ -25,11 +25,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 // ─── Theme helper ─────────────────────────────────────────────────────────────
 
 function applyTheme(theme: "dark" | "light") {
-  if (theme === "dark") {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-  }
+  document.documentElement.setAttribute("data-theme", theme);
   // Mirror to localStorage so the flash-prevention script can use it
   localStorage.setItem("mf-theme", theme);
 }

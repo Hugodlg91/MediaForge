@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Sidebar, NavSection } from "./components/Layout/Sidebar";
+import { TitleBar } from "./components/Layout/TitleBar";
 import { ConverterPage } from "./components/Converter/ConverterPage";
 import { HistoryPage } from "./components/History/HistoryPage";
 import { SettingsPage } from "./components/Settings/SettingsPage";
@@ -14,7 +15,7 @@ function AppLayout() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex-1 flex items-center justify-center">
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
         </div>
       );
@@ -29,11 +30,14 @@ function AppLayout() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-950 text-white overflow-hidden">
-      <Sidebar active={section} onChange={setSection} />
-      <main className="flex-1 overflow-y-auto">
-        {renderContent()}
-      </main>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", background: "var(--bg)", color: "var(--text)" }}>
+      <TitleBar />
+      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        <Sidebar active={section} onChange={setSection} />
+        <main style={{ flex: 1, overflowY: "auto" }}>
+          {renderContent()}
+        </main>
+      </div>
     </div>
   );
 }

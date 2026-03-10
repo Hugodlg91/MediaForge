@@ -234,12 +234,11 @@ export function ImageConverter() {
       <div className="flex items-center justify-between">
         <div>
           <h2
-            className="text-gray-100 text-xl font-bold tracking-tight"
-            style={{ fontFamily: "'Syne', sans-serif" }}
+            style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.02em", color: "var(--text)" }}
           >
             {t("nav.image")}
           </h2>
-          <p className="text-[10px] text-gray-500 tracking-widest mt-0.5">100% LOCAL</p>
+          <p style={{ fontSize: "11px", color: "var(--muted)", letterSpacing: "0.04em", marginTop: "2px" }}>100% LOCAL — AUCUNE DONNEE ENVOYEE</p>
         </div>
         <div className="flex bg-gray-800 border border-gray-700 rounded-lg p-0.5 text-xs">
           <button
@@ -280,9 +279,7 @@ export function ImageConverter() {
                 />
               </div>
             ) : (
-              <div className="shrink-0 w-28 h-28 rounded-lg bg-gray-800 flex items-center justify-center text-4xl">
-                🖼️
-              </div>
+              <div style={{ width:"48px",height:"48px",borderRadius:"8px",background:"var(--accent-dim)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"9px",fontWeight:700,color:"var(--accent)",letterSpacing:"0.06em",flexShrink:0 }}>IMG</div>
             )}
 
             {/* Info */}
@@ -294,10 +291,10 @@ export function ImageConverter() {
                   </p>
                   {imageInfo && (
                     <div className="flex flex-col gap-0.5 text-xs text-gray-400">
-                      <span>📐 {imageInfo.width} × {imageInfo.height} px</span>
-                      <span>🗂 {imageInfo.format.toUpperCase()}</span>
-                      <span>💾 {formatFileSize(imageInfo.file_size)}</span>
-                      {imageInfo.has_alpha && <span>✨ {t("image.fileInfo.hasAlpha")}</span>}
+                      <span>{imageInfo.width} x {imageInfo.height} px</span>
+                      <span>{imageInfo.format.toUpperCase()}</span>
+                      <span>{formatFileSize(imageInfo.file_size)}</span>
+                      {imageInfo.has_alpha && <span>{t("image.fileInfo.hasAlpha")}</span>}
                     </div>
                   )}
                   {!isConverting && (
@@ -493,11 +490,8 @@ export function ImageConverter() {
               onFilesDropped={handleBatchFilesAdded}
               allowedExtensions={ACCEPTED_EXTENSIONS}
               multiple={true}
-            >
-              <span className="text-2xl">🖼️</span>
-              <span className="text-gray-400 text-sm">{t("image.selectImages")}</span>
-              <span className="text-xs text-indigo-400">{t("dropzone.browse")}</span>
-            </DropZone>
+              formats={IMAGE_FORMATS.join(" · ").toUpperCase()}
+            />
           )}
 
           {/* File list */}

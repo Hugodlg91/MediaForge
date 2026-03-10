@@ -43,45 +43,125 @@ function HistoryRow({ item, t }: { item: HistoryItem; t: TFunction }) {
         invoke("open_folder", { file_path: item.output_path } as unknown as Record<string, unknown>).catch(() => { });
 
     return (
-        <div className="group flex items-center gap-3 px-4 py-3 hover:bg-gray-800/40 transition-colors">
+        <div
+            style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "10px",
+                padding: "12px 16px",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+            }}
+            className="slide-in"
+        >
+            {/* Status dot */}
+            <span
+                style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: item.output_path ? "#4ade80" : "#f87171",
+                    flexShrink: 0,
+                    display: "inline-block",
+                }}
+            />
+
             {/* Type badge */}
-            <span className="text-[8px] font-bold tracking-wider text-indigo-400 bg-indigo-950 px-2 py-1 rounded shrink-0">
+            <span
+                style={{
+                    fontSize: "10px",
+                    padding: "3px 8px",
+                    borderRadius: "4px",
+                    background: "var(--surface2)",
+                    color: "var(--muted)",
+                    fontWeight: 700,
+                    letterSpacing: "0.06em",
+                    flexShrink: 0,
+                }}
+            >
                 {mediaCode(item.media_type)}
             </span>
 
             {/* Info */}
-            <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-200 font-medium truncate" title={item.file_name}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <p
+                    style={{
+                        fontSize: "12px",
+                        fontWeight: 500,
+                        color: "var(--text)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                    }}
+                    title={item.file_name}
+                >
                     {item.file_name}
                 </p>
-                <p className="text-[10px] text-gray-500 mt-0.5 tracking-wider">
-                    <span className="uppercase">{item.source_format}</span>
+                <p style={{ fontSize: "10px", color: "var(--muted)", marginTop: "2px" }}>
+                    <span style={{ textTransform: "uppercase" }}>{item.source_format}</span>
                     {" → "}
-                    <span className="uppercase">{item.target_format}</span>
+                    <span style={{ textTransform: "uppercase" }}>{item.target_format}</span>
                     {item.file_size && <span> · {item.file_size}</span>}
                 </p>
             </div>
 
             {/* Date */}
-            <span className="text-[10px] text-gray-600 shrink-0 hidden sm:block">
+            <span style={{ fontSize: "10px", color: "var(--muted)", whiteSpace: "nowrap", flexShrink: 0 }}>
                 {formatDate(item.timestamp, t)}
             </span>
 
-            {/* Action buttons — visible on hover */}
-            <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Actions */}
+            <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
                 <button
                     onClick={handleOpenFile}
                     title={t("history.openFile")}
-                    className="p-1.5 rounded-lg hover:bg-gray-700 text-gray-500 hover:text-indigo-400 transition-colors text-xs"
+                    style={{
+                        padding: "4px 8px",
+                        borderRadius: "6px",
+                        border: "1px solid var(--border)",
+                        background: "transparent",
+                        color: "var(--muted)",
+                        fontSize: "10px",
+                        cursor: "pointer",
+                        letterSpacing: "0.04em",
+                        transition: "border-color 0.15s, color 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.color = "var(--accent)";
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--accent)";
+                    }}
+                    onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.color = "var(--muted)";
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)";
+                    }}
                 >
-                    ↗
+                    OUVRIR
                 </button>
                 <button
                     onClick={handleOpenFolder}
                     title={t("history.openFolder")}
-                    className="p-1.5 rounded-lg hover:bg-gray-700 text-gray-500 hover:text-indigo-400 transition-colors text-xs"
+                    style={{
+                        padding: "4px 8px",
+                        borderRadius: "6px",
+                        border: "1px solid var(--border)",
+                        background: "transparent",
+                        color: "var(--muted)",
+                        fontSize: "10px",
+                        cursor: "pointer",
+                        letterSpacing: "0.04em",
+                        transition: "border-color 0.15s, color 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.color = "var(--accent)";
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--accent)";
+                    }}
+                    onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.color = "var(--muted)";
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)";
+                    }}
                 >
-                    ⬛
+                    DOSSIER
                 </button>
             </div>
         </div>
@@ -106,24 +186,34 @@ export function History() {
     };
 
     return (
-        <div className="flex flex-col gap-4 p-6 h-full overflow-y-auto">
+        <div style={{ padding: "24px", height: "100%", overflowY: "auto", display: "flex", flexDirection: "column", gap: "24px" }}>
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2
-                        className="text-gray-100 text-xl font-bold tracking-tight"
-                        style={{ fontFamily: "'Syne', sans-serif" }}
-                    >
-                        {t("history.title")}
-                    </h2>
-                </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <h2
+                    style={{
+                        fontFamily: "'Syne', sans-serif",
+                        fontWeight: 700,
+                        fontSize: "22px",
+                        letterSpacing: "-0.02em",
+                        color: "var(--text)",
+                    }}
+                >
+                    {t("history.title")}
+                </h2>
                 {history.length > 0 && (
                     <button
                         onClick={handleClear}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] tracking-widest transition-all border ${confirmClear
-                            ? "border-red-600 bg-red-950/40 text-red-400"
-                            : "border-gray-700 text-gray-500 hover:border-red-600 hover:text-red-400"
-                            }`}
+                        style={{
+                            padding: "4px 12px",
+                            borderRadius: "6px",
+                            border: confirmClear ? "1px solid #f87171" : "1px solid var(--border)",
+                            background: confirmClear ? "rgba(248,113,113,0.08)" : "transparent",
+                            color: confirmClear ? "#f87171" : "var(--muted)",
+                            fontSize: "10px",
+                            cursor: "pointer",
+                            letterSpacing: "0.08em",
+                            transition: "all 0.15s",
+                        }}
                     >
                         {(confirmClear ? t("history.clearConfirm") : t("history.clear")).toUpperCase()}
                     </button>
@@ -132,23 +222,18 @@ export function History() {
 
             {/* Content */}
             {isLoading ? (
-                <div className="flex items-center justify-center flex-1">
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                 </div>
             ) : history.length === 0 ? (
-                <div className="flex flex-col items-center justify-center flex-1 text-gray-500 gap-3">
-                    <span className="text-[10px] tracking-widest">LOG</span>
-                    <p className="text-xs tracking-wider">{t("history.empty")}</p>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", color: "var(--muted)" }}>
+                    <span style={{ fontSize: "10px", letterSpacing: "0.1em" }}>LOG</span>
+                    <p style={{ fontSize: "12px", letterSpacing: "0.04em" }}>{t("history.empty")}</p>
                 </div>
             ) : (
-                <div className="flex flex-col bg-gray-900 rounded-xl border border-gray-700 overflow-hidden">
-                    {history.map((item, idx) => (
-                        <div
-                            key={item.id}
-                            className={idx !== history.length - 1 ? "border-b border-gray-700/60" : ""}
-                        >
-                            <HistoryRow item={item} t={t} />
-                        </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {history.map((item) => (
+                        <HistoryRow key={item.id} item={item} t={t} />
                     ))}
                 </div>
             )}

@@ -19,36 +19,100 @@ export function Sidebar({ active, onChange }: SidebarProps) {
   const { t } = useTranslation();
 
   return (
-    <aside className="w-16 shrink-0 flex flex-col bg-gray-900 border-r border-gray-700 h-full">
+    <aside
+      style={{
+        width: "64px",
+        minWidth: "64px",
+        background: "var(--surface)",
+        borderRight: "1px solid var(--border)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "16px 0",
+        gap: "4px",
+        height: "100%",
+        flexShrink: 0,
+      }}
+    >
       {/* Logo */}
-      <div className="flex items-center justify-center h-12 border-b border-gray-700 shrink-0">
-        <span
-          className="text-indigo-400 font-bold text-xl leading-none"
-          style={{ fontFamily: "'Syne', sans-serif" }}
-        >
-          M
-        </span>
-      </div>
+      <span
+        style={{
+          fontFamily: "'Syne', sans-serif",
+          fontWeight: 800,
+          fontSize: "18px",
+          color: "var(--accent)",
+          marginBottom: "20px",
+          lineHeight: 1,
+          display: "block",
+        }}
+      >
+        M
+      </span>
 
       {/* Nav items */}
-      <nav className="flex flex-col items-center gap-1 py-3 flex-1">
-        {navItems.map(({ key, code }) => (
-          <button
-            key={key}
-            onClick={() => onChange(key)}
-            title={t(`nav.${key}`)}
-            className={`relative w-11 h-11 rounded-lg flex items-center justify-center transition-all ${
-              active === key
-                ? "bg-indigo-950 text-indigo-400"
-                : "text-gray-500 hover:bg-indigo-950/40 hover:text-indigo-400"
-            }`}
-          >
-            {active === key && (
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-indigo-600 rounded-r" />
-            )}
-            <span className="text-[8px] font-bold tracking-wider">{code}</span>
-          </button>
-        ))}
+      <nav style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px", width: "100%" }}>
+        {navItems.map(({ key, code }) => {
+          const isActive = active === key;
+          return (
+            <button
+              key={key}
+              onClick={() => onChange(key)}
+              title={t(`nav.${key}`)}
+              style={{
+                position: "relative",
+                width: "44px",
+                height: "44px",
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "none",
+                cursor: "pointer",
+                background: isActive ? "var(--accent-dim)" : "transparent",
+                color: isActive ? "var(--accent)" : "var(--muted)",
+                transition: "background 0.15s, color 0.15s",
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLButtonElement).style.background = "var(--accent-dim)";
+                  (e.currentTarget as HTMLButtonElement).style.color = "var(--accent)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                  (e.currentTarget as HTMLButtonElement).style.color = "var(--muted)";
+                }
+              }}
+            >
+              {/* Active indicator bar */}
+              {isActive && (
+                <span
+                  style={{
+                    position: "absolute",
+                    left: "-1px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: "3px",
+                    height: "20px",
+                    background: "var(--accent)",
+                    borderRadius: "0 2px 2px 0",
+                  }}
+                />
+              )}
+              <span
+                style={{
+                  fontSize: "8px",
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {code}
+              </span>
+            </button>
+          );
+        })}
       </nav>
     </aside>
   );

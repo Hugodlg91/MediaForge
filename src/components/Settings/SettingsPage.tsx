@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { getVersion } from "@tauri-apps/api/app";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -6,12 +6,12 @@ import { useSettingsContext } from "../../context/SettingsContext";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LANGUAGES = [
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "en", label: "English",  flag: "🇬🇧" },
-  { code: "es", label: "Español",  flag: "🇪🇸" },
-  { code: "de", label: "Deutsch",  flag: "🇩🇪" },
-  { code: "pt", label: "Português",flag: "🇵🇹" },
+const LANGUAGES: { code: string; label: string; display: string }[] = [
+  { code: "fr", label: "FR", display: "Francais" },
+  { code: "en", label: "EN", display: "English" },
+  { code: "es", label: "ES", display: "Espanol" },
+  { code: "de", label: "DE", display: "Deutsch" },
+  { code: "pt", label: "PT", display: "Portugues" },
 ];
 
 const VIDEO_FORMATS = ["mp4", "mkv", "avi", "mov", "webm"];
@@ -22,8 +22,27 @@ const IMAGE_FORMATS = ["png", "jpg", "webp", "bmp", "tiff"];
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-4 bg-gray-900 rounded-xl p-5 border border-gray-700">
-      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
+    <div
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "10px",
+        padding: "16px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+      }}
+    >
+      <h3
+        style={{
+          fontSize: "10px",
+          color: "var(--muted)",
+          letterSpacing: "0.1em",
+          fontWeight: 700,
+          textTransform: "uppercase",
+          marginBottom: "2px",
+        }}
+      >
         {title}
       </h3>
       {children}
@@ -33,9 +52,95 @@ function SectionCard({ title, children }: { title: string; children: React.React
 
 function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 flex-wrap">
-      <label className="text-gray-300 text-xs shrink-0">{label}</label>
-      <div className="flex items-center gap-2">{children}</div>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
+      <label style={{ fontSize: "12px", color: "var(--text)", flexShrink: 0 }}>{label}</label>
+      <div>{children}</div>
+    </div>
+  );
+}
+
+function PillSelect({
+  value,
+  options,
+  onChange,
+}: {
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    if (open) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const current = options.find((o) => o.value === value);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          fontSize: "11px",
+          padding: "4px 12px",
+          border: "1px solid var(--border)",
+          borderRadius: "6px",
+          color: "var(--accent)",
+          background: "var(--accent-dim)",
+          cursor: "pointer",
+          letterSpacing: "0.04em",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {current?.label ?? value} v
+      </button>
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 4px)",
+            right: 0,
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "8px",
+            padding: "4px",
+            zIndex: 50,
+            minWidth: "120px",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "2px",
+          }}
+          className="fade-in"
+        >
+          {options.map((o) => (
+            <button
+              key={o.value}
+              onClick={() => { onChange(o.value); setOpen(false); }}
+              style={{
+                textAlign: "left",
+                padding: "5px 10px",
+                borderRadius: "4px",
+                border: "none",
+                fontSize: "11px",
+                cursor: "pointer",
+                color: o.value === value ? "var(--accent)" : "var(--text)",
+                background: o.value === value ? "var(--accent-dim)" : "transparent",
+                letterSpacing: "0.04em",
+                transition: "background 0.1s",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -58,150 +163,133 @@ export function SettingsPage() {
     }
   };
 
-  const selectClass =
-    "bg-gray-800 border border-gray-700 text-gray-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-600";
+  const langOptions = LANGUAGES.map((l) => ({ value: l.code, label: l.display }));
+  const videoOptions = VIDEO_FORMATS.map((f) => ({ value: f, label: f.toUpperCase() }));
+  const audioOptions = AUDIO_FORMATS.map((f) => ({ value: f, label: f.toUpperCase() }));
+  const imageOptions = IMAGE_FORMATS.map((f) => ({ value: f, label: f.toUpperCase() }));
 
   return (
-    <div className="flex flex-col gap-6 p-6 h-full overflow-y-auto">
+    <div style={{ padding: "24px", height: "100%", overflowY: "auto", display: "flex", flexDirection: "column", gap: "24px" }}>
       <h2
-        className="text-gray-100 text-xl font-bold tracking-tight"
-        style={{ fontFamily: "'Syne', sans-serif" }}
+        style={{
+          fontFamily: "'Syne', sans-serif",
+          fontWeight: 700,
+          fontSize: "22px",
+          letterSpacing: "-0.02em",
+          color: "var(--text)",
+        }}
       >
         {t("settings.title")}
       </h2>
 
-      <div className="flex flex-col gap-4 max-w-lg">
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxWidth: "520px" }}>
 
-        {/* ── Appearance ──────────────────────────────────────────────────── */}
+        {/* ── APPARENCE ─────────────────────────────────────────────────────── */}
         <SectionCard title={t("settings.appearance")}>
           <SettingRow label={t("settings.theme")}>
-            <div className="flex rounded-lg overflow-hidden border border-gray-700">
-              <button
-                onClick={() => updateSettings({ theme: "dark" })}
-                className={`px-4 py-1.5 text-xs tracking-wider transition-colors ${
-                  settings.theme === "dark"
-                    ? "bg-indigo-950 text-indigo-400"
-                    : "bg-gray-800 text-gray-500 hover:text-gray-300"
-                }`}
-              >
-                {t("settings.themeDark").toUpperCase()}
-              </button>
-              <button
-                onClick={() => updateSettings({ theme: "light" })}
-                className={`px-4 py-1.5 text-xs tracking-wider transition-colors ${
-                  settings.theme === "light"
-                    ? "bg-indigo-950 text-indigo-400"
-                    : "bg-gray-800 text-gray-500 hover:text-gray-300"
-                }`}
-              >
-                {t("settings.themeLight").toUpperCase()}
-              </button>
-            </div>
+            <PillSelect
+              value={settings.theme}
+              options={[
+                { value: "dark",  label: "Sombre" },
+                { value: "light", label: "Clair"  },
+              ]}
+              onChange={(v) => updateSettings({ theme: v as "dark" | "light" })}
+            />
           </SettingRow>
-
           <SettingRow label={t("settings.language")}>
-            <select
+            <PillSelect
               value={settings.language}
-              onChange={(e) => updateSettings({ language: e.target.value })}
-              className={selectClass}
-            >
-              {LANGUAGES.map((l) => (
-                <option key={l.code} value={l.code}>
-                  {l.flag} {l.label}
-                </option>
-              ))}
-            </select>
+              options={langOptions}
+              onChange={(v) => updateSettings({ language: v })}
+            />
           </SettingRow>
         </SectionCard>
 
-        {/* ── Conversion ──────────────────────────────────────────────────── */}
+        {/* ── CONVERSION ────────────────────────────────────────────────────── */}
         <SectionCard title={t("settings.conversion")}>
-          <div className="flex flex-col gap-2">
-            <label className="text-gray-500 text-[10px] tracking-widest">{t("settings.outputDir").toUpperCase()}</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                readOnly
-                value={settings.output_dir ?? ""}
-                placeholder={t("settings.outputDirDefault")}
-                className="flex-1 min-w-0 bg-gray-800 border border-gray-700 text-gray-300 placeholder-gray-600 text-xs rounded-lg px-3 py-2 focus:outline-none truncate"
-              />
+          <SettingRow label={t("settings.outputDir")}>
+            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+              <span
+                style={{
+                  fontSize: "11px",
+                  color: "var(--muted)",
+                  maxWidth: "140px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+                title={settings.output_dir ?? t("settings.outputDirDefault")}
+              >
+                {settings.output_dir ? settings.output_dir.split(/[\\/]/).pop() : t("settings.outputDirDefault")}
+              </span>
               <button
                 onClick={handlePickFolder}
-                className="shrink-0 px-3 py-2 border border-gray-700 hover:border-gray-600 text-gray-400 hover:text-gray-200 text-xs rounded-lg transition-colors tracking-wider"
+                style={{
+                  fontSize: "10px",
+                  padding: "4px 10px",
+                  border: "1px solid var(--border)",
+                  borderRadius: "6px",
+                  color: "var(--muted)",
+                  background: "transparent",
+                  cursor: "pointer",
+                  letterSpacing: "0.04em",
+                  whiteSpace: "nowrap",
+                }}
               >
                 {t("settings.chooseFolder").toUpperCase()}
               </button>
               {settings.output_dir && (
                 <button
                   onClick={() => updateSettings({ output_dir: null })}
-                  className="shrink-0 px-3 py-2 border border-gray-700 hover:border-red-600 text-gray-500 hover:text-red-400 text-xs rounded-lg transition-colors tracking-wider"
+                  style={{
+                    fontSize: "10px",
+                    padding: "4px 8px",
+                    border: "1px solid var(--border)",
+                    borderRadius: "6px",
+                    color: "var(--muted)",
+                    background: "transparent",
+                    cursor: "pointer",
+                  }}
                 >
-                  {t("settings.reset").toUpperCase()}
+                  x
                 </button>
               )}
             </div>
-          </div>
+          </SettingRow>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-gray-500 text-[10px] tracking-widest">{t("settings.defaultFormats").toUpperCase()}</label>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="flex flex-col gap-1">
-                <span className="text-gray-500 text-[10px] tracking-widest">{t("settings.defaultVideo").toUpperCase()}</span>
-                <select
-                  value={settings.default_video_format}
-                  onChange={(e) => updateSettings({ default_video_format: e.target.value })}
-                  className={selectClass}
-                >
-                  {VIDEO_FORMATS.map((f) => (
-                    <option key={f} value={f}>{f.toUpperCase()}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-gray-500 text-[10px] tracking-widest">{t("settings.defaultAudio").toUpperCase()}</span>
-                <select
-                  value={settings.default_audio_format}
-                  onChange={(e) => updateSettings({ default_audio_format: e.target.value })}
-                  className={selectClass}
-                >
-                  {AUDIO_FORMATS.map((f) => (
-                    <option key={f} value={f}>{f.toUpperCase()}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-gray-500 text-[10px] tracking-widest">{t("settings.defaultImage").toUpperCase()}</span>
-                <select
-                  value={settings.default_image_format}
-                  onChange={(e) => updateSettings({ default_image_format: e.target.value })}
-                  className={selectClass}
-                >
-                  {IMAGE_FORMATS.map((f) => (
-                    <option key={f} value={f}>{f.toUpperCase()}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+          <SettingRow label={t("settings.defaultVideo")}>
+            <PillSelect
+              value={settings.default_video_format}
+              options={videoOptions}
+              onChange={(v) => updateSettings({ default_video_format: v })}
+            />
+          </SettingRow>
+
+          <SettingRow label={t("settings.defaultAudio")}>
+            <PillSelect
+              value={settings.default_audio_format}
+              options={audioOptions}
+              onChange={(v) => updateSettings({ default_audio_format: v })}
+            />
+          </SettingRow>
+
+          <SettingRow label={t("settings.defaultImage")}>
+            <PillSelect
+              value={settings.default_image_format}
+              options={imageOptions}
+              onChange={(v) => updateSettings({ default_image_format: v })}
+            />
+          </SettingRow>
         </SectionCard>
 
-        {/* ── About ───────────────────────────────────────────────────────── */}
+        {/* ── A PROPOS ──────────────────────────────────────────────────────── */}
         <SectionCard title={t("settings.about")}>
-          <div className="flex items-center justify-between">
-            <span
-              className="text-gray-100 text-sm font-bold tracking-wide"
-              style={{ fontFamily: "'Syne', sans-serif" }}
-            >
-              MEDIAFORGE
-            </span>
-            {version && (
-              <span className="text-gray-500 text-[10px] tracking-widest">
-                v{version}
-              </span>
-            )}
-          </div>
-          <p className="text-gray-500 text-[10px] tracking-widest">{t("settings.localOnly").toUpperCase()}</p>
+          <SettingRow label={t("settings.version")}>
+            <span style={{ fontSize: "11px", color: "var(--muted)" }}>v{version || "…"}</span>
+          </SettingRow>
+          <SettingRow label="Donnees envoyees">
+            <span style={{ fontSize: "11px", color: "var(--muted)" }}>Aucune</span>
+          </SettingRow>
         </SectionCard>
 
       </div>

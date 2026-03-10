@@ -13,6 +13,8 @@ interface DropZoneProps {
   /** Override the inner layout classes (default: centered column with padding) */
   className?: string;
   children?: React.ReactNode;
+  /** Comma-separated list of formats to show below the upload hint */
+  formats?: string;
 }
 
 export function DropZone({
@@ -24,17 +26,16 @@ export function DropZone({
   hasFile = false,
   className,
   children,
+  formats,
 }: DropZoneProps) {
   const { t } = useTranslation();
   const { isDragging, droppedFiles, bind, reset } = useDragDrop();
 
-  // Update allowed extensions ref without recreating the event listener
   useEffect(() => {
     bind(allowedExtensions);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bind]);
 
-  // Forward dropped files to parent
   useEffect(() => {
     if (droppedFiles.length > 0) {
       onFilesDropped(multiple ? droppedFiles : [droppedFiles[0]]);
@@ -54,28 +55,80 @@ export function DropZone({
     if (files.length > 0) onFilesDropped(files);
   };
 
-  const borderColor = isDragging
-    ? "border-indigo-400 bg-indigo-950/40"
-    : hasFile
-    ? "border-indigo-600 bg-indigo-950/20"
-    : "border-gray-700 hover:border-indigo-500 hover:bg-indigo-950/10";
+  const isHighlighted = isDragging || hasFile;
 
   return (
     <div
       onClick={!disabled ? handleClick : undefined}
-      className={`border border-dashed rounded-xl transition-all duration-200 ${
-        disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-      } ${borderColor} ${
-        className ?? "flex flex-col items-center justify-center p-8 gap-3"
-      }`}
+      style={{
+        border: `1.5px dashed ${isHighlighted ? "var(--accent)" : "var(--border)"}`,
+        borderRadius: "10px",
+        background: isHighlighted ? "var(--accent-dim)" : "var(--surface)",
+        padding: "32px 24px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "10px",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+        transition: "border-color 0.15s, background 0.15s",
+      }}
+      className={className}
+      onMouseEnter={(e) => {
+        if (!disabled && !isHighlighted) {
+          (e.currentTarget as HTMLDivElement).style.borderColor = "var(--accent)";
+          (e.currentTarget as HTMLDivElement).style.background = "var(--accent-dim)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled && !isHighlighted) {
+          (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)";
+          (e.currentTarget as HTMLDivElement).style.background = "var(--surface)";
+        }
+      }}
     >
       {children ?? (
         <>
-          <p className="text-gray-300 text-sm font-medium">
+          {/* Plus icon */}
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "10px",
+              background: "var(--accent-dim)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "22px",
+              color: "var(--accent)",
+              fontWeight: 200,
+              flexShrink: 0,
+            }}
+          >
+            +
+          </div>
+
+          <p style={{ fontSize: "13px", fontWeight: 500, color: "var(--text)" }}>
             {label ?? t("dropzone.label")}
           </p>
-          <p className="text-gray-500 text-xs">{t("dropzone.or")}</p>
-          <span className="text-xs text-indigo-400">{t("dropzone.browse")}</span>
+          <p style={{ fontSize: "12px", color: "var(--muted)" }}>
+            {t("dropzone.or")}{" "}
+            <span style={{ color: "var(--accent)", textDecoration: "underline" }}>
+              {t("dropzone.browse")}
+            </span>
+          </p>
+          {formats && (
+            <p
+              style={{
+                fontSize: "10px",
+                color: "var(--muted)",
+                letterSpacing: "0.06em",
+                textAlign: "center",
+              }}
+            >
+              {formats}
+            </p>
+          )}
         </>
       )}
     </div>

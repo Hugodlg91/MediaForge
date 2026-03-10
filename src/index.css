@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap');
 @import "tailwindcss";
 
-/* ── Theme overrides (dark base) ─────────────────────────────────────────── */
+/* ── Tailwind v4 design tokens (for components still using Tailwind classes) ── */
 @theme {
   /* Gray palette → dark matte backgrounds */
   --color-gray-950: #0d0d0f;
@@ -29,22 +29,51 @@
   --font-family-mono: 'DM Mono', 'Fira Code', ui-monospace, monospace;
 }
 
-:root {
-  font-family: 'DM Mono', 'Fira Code', ui-monospace, monospace;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* ── Dark mode ───────────────────────────────────────────────────────────── */
-html.dark {
+/* ── Semantic tokens — dark theme (default) ───────────────────────────────── */
+[data-theme="dark"] {
   color-scheme: dark;
+  --bg:         #0d0d0f;
+  --surface:    #141417;
+  --surface2:   #1c1c21;
+  --border:     #2a2a32;
+  --text:       #e8e6f0;
+  --muted:      #5a5870;
+  --accent:     #7c6aff;
+  --accent-dim: #1a1030;
 }
 
-/* ── Light mode: warm-tinted palette ─────────────────────────────────────── */
-html:not(.dark) {
+/* ── Semantic tokens — light theme ───────────────────────────────────────── */
+[data-theme="light"] {
   color-scheme: light;
+  --bg:         #f0eff4;
+  --surface:    #ffffff;
+  --surface2:   #f7f6fb;
+  --border:     #e2e0eb;
+  --text:       #1a1825;
+  --muted:      #9592a8;
+  --accent:     #7c6aff;
+  --accent-dim: #ede9ff;
+}
+
+/* ── Keep Tailwind colour-scheme for existing components ──────────────────── */
+html[data-theme="dark"] {
+  --color-gray-950: #0d0d0f;
+  --color-gray-900: #141417;
+  --color-gray-800: #1c1c21;
+  --color-gray-700: #2a2a32;
+  --color-gray-600: #3a3850;
+  --color-gray-500: #5a5870;
+  --color-gray-400: #7a788a;
+  --color-gray-300: #a0a0b8;
+  --color-gray-200: #c8c6d8;
+  --color-gray-100: #e8e6f0;
+  --color-indigo-950: #1a1030;
+  --color-indigo-900: #2d2456;
+  --color-indigo-600: #7c6aff;
+  --color-indigo-400: #a099ff;
+}
+
+html[data-theme="light"] {
   --color-gray-950: #f0eff4;
   --color-gray-900: #ffffff;
   --color-gray-800: #f7f6fb;
@@ -58,6 +87,17 @@ html:not(.dark) {
   --color-white: #1a1825;
   --color-indigo-950: #ede9ff;
   --color-indigo-900: #ddd5ff;
+  --color-indigo-600: #7c6aff;
+  --color-indigo-400: #6a5fe8;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+:root {
+  font-family: 'DM Mono', 'Fira Code', ui-monospace, monospace;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
@@ -69,27 +109,32 @@ html:not(.dark) {
 html, body, #root {
   height: 100%;
   overflow: hidden;
+  background: var(--bg, #0d0d0f);
 }
 
 /* ── Scrollbar ────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-gray-700); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--border, #2a2a32); border-radius: 2px; }
 
 /* ── Animations ──────────────────────────────────────────────────────────── */
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 @keyframes slide-in {
   from { opacity: 0; transform: translateX(-8px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes progress-glow {
-  0%, 100% { box-shadow: 0 0 8px #7c6aff55; }
-  50%       { box-shadow: 0 0 18px #7c6aff88; }
+  0%, 100% { box-shadow: 0 0 8px var(--accent); }
+  50%       { box-shadow: 0 0 18px var(--accent); }
 }
 
+.slide-in { animation: slide-in 0.2s ease forwards; }
+.fade-in  { animation: fade-in 0.2s ease forwards; }
+
+/* Legacy animation helpers kept for backward compat */
 .animate-fade-in       { animation: fade-in 0.2s ease-out; }
 .animate-slide-in      { animation: slide-in 0.2s ease forwards; }
 .animate-progress-glow { animation: progress-glow 2s ease infinite; }
