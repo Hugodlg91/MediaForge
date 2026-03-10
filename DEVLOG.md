@@ -140,6 +140,21 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 
 ---
 
+### ✅ Étape 11 — Migration data-theme & refonte UI complète (TERMINÉE)
+- [x] **Migration thème** : `applyTheme()` dans `useSettings.ts` → `setAttribute("data-theme", theme)` (replaces `classList.add("dark")`)
+- [x] **Script anti-flash** : `index.html` set `data-theme` sur `<html>` avant le premier render React
+- [x] **Tokens CSS sémantiques** : `index.css` ajoute `[data-theme="dark/light"]` avec `--bg`, `--surface`, `--surface2`, `--border`, `--text`, `--muted`, `--accent`, `--accent-dim`. Tailwind v4 tokens maintenus en synchronisation.
+- [x] **TitleBar** : nouveau composant — 38px, 3 cercles macOS, "MEDIAFORGE" centré (Syne 700), pill thème (LIGHT/DARK), pill langue (dropdown inline FR/EN/ES/DE/PT)
+- [x] **App.tsx** : `<TitleBar>` ajouté au-dessus du layout sidebar+main
+- [x] **Sidebar** : 64px, "M" Syne 800 `--accent`, 5 nav items 44×44px, barre verticale active 3×20px
+- [x] **DropZone** : icône "+" 48×48px, texte + "parcourir" souligné `--accent`, prop `formats` ajoutée
+- [x] **History** : cards individuelles — point statut, badge type, nom, formats, date relative, actions
+- [x] **SettingsPage** : 3 section cards, composant `PillSelect` pour tous les selects, max-width 520px
+- [x] **Converters (Image/Vidéo/Audio)** : headers Syne 22px + sous-titre muted, 0 emoji, icônes IMG/VID/AUD
+- [x] `npx tsc --noEmit` : **0 erreur TypeScript** — `npm run build` : **0 erreur** (95 modules, 339 kB JS)
+
+---
+
 ## Décisions techniques prises
 - Tailwind v4 : pas de fichier tailwind.config.js, tout passe par le plugin Vite
 - FFmpeg : sidecar Tauri, binaires nommés avec le triple Rust (ex: ffmpeg-x86_64-pc-windows-msvc.exe)
