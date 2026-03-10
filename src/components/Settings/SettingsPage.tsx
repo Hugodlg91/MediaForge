@@ -22,8 +22,8 @@ const IMAGE_FORMATS = ["png", "jpg", "webp", "bmp", "tiff"];
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-4 bg-gray-900 rounded-xl p-5 border border-gray-800">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+    <div className="flex flex-col gap-4 bg-gray-900 rounded-xl p-5 border border-gray-700">
+      <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
         {title}
       </h3>
       {children}
@@ -34,7 +34,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 flex-wrap">
-      <label className="text-gray-300 text-sm shrink-0">{label}</label>
+      <label className="text-gray-300 text-xs shrink-0">{label}</label>
       <div className="flex items-center gap-2">{children}</div>
     </div>
   );
@@ -59,11 +59,16 @@ export function SettingsPage() {
   };
 
   const selectClass =
-    "bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500";
+    "bg-gray-800 border border-gray-700 text-gray-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-600";
 
   return (
     <div className="flex flex-col gap-6 p-6 h-full overflow-y-auto">
-      <h2 className="text-white text-xl font-semibold">{t("settings.title")}</h2>
+      <h2
+        className="text-gray-100 text-xl font-bold tracking-tight"
+        style={{ fontFamily: "'Syne', sans-serif" }}
+      >
+        {t("settings.title")}
+      </h2>
 
       <div className="flex flex-col gap-4 max-w-lg">
 
@@ -73,23 +78,23 @@ export function SettingsPage() {
             <div className="flex rounded-lg overflow-hidden border border-gray-700">
               <button
                 onClick={() => updateSettings({ theme: "dark" })}
-                className={`px-4 py-1.5 text-sm transition-colors ${
+                className={`px-4 py-1.5 text-xs tracking-wider transition-colors ${
                   settings.theme === "dark"
-                    ? "bg-indigo-600 text-white"
-                    : "bg-gray-800 text-gray-400 hover:text-white"
+                    ? "bg-indigo-950 text-indigo-400"
+                    : "bg-gray-800 text-gray-500 hover:text-gray-300"
                 }`}
               >
-                🌙 {t("settings.themeDark")}
+                {t("settings.themeDark").toUpperCase()}
               </button>
               <button
                 onClick={() => updateSettings({ theme: "light" })}
-                className={`px-4 py-1.5 text-sm transition-colors ${
+                className={`px-4 py-1.5 text-xs tracking-wider transition-colors ${
                   settings.theme === "light"
-                    ? "bg-indigo-600 text-white"
-                    : "bg-gray-800 text-gray-400 hover:text-white"
+                    ? "bg-indigo-950 text-indigo-400"
+                    : "bg-gray-800 text-gray-500 hover:text-gray-300"
                 }`}
               >
-                ☀️ {t("settings.themeLight")}
+                {t("settings.themeLight").toUpperCase()}
               </button>
             </div>
           </SettingRow>
@@ -112,37 +117,37 @@ export function SettingsPage() {
         {/* ── Conversion ──────────────────────────────────────────────────── */}
         <SectionCard title={t("settings.conversion")}>
           <div className="flex flex-col gap-2">
-            <label className="text-gray-300 text-sm">{t("settings.outputDir")}</label>
+            <label className="text-gray-500 text-[10px] tracking-widest">{t("settings.outputDir").toUpperCase()}</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 readOnly
                 value={settings.output_dir ?? ""}
                 placeholder={t("settings.outputDirDefault")}
-                className="flex-1 min-w-0 bg-gray-800 border border-gray-700 text-gray-300 placeholder-gray-600 text-sm rounded-lg px-3 py-2 focus:outline-none truncate"
+                className="flex-1 min-w-0 bg-gray-800 border border-gray-700 text-gray-300 placeholder-gray-600 text-xs rounded-lg px-3 py-2 focus:outline-none truncate"
               />
               <button
                 onClick={handlePickFolder}
-                className="shrink-0 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm rounded-lg transition-colors"
+                className="shrink-0 px-3 py-2 border border-gray-700 hover:border-gray-600 text-gray-400 hover:text-gray-200 text-xs rounded-lg transition-colors tracking-wider"
               >
-                {t("settings.chooseFolder")}
+                {t("settings.chooseFolder").toUpperCase()}
               </button>
               {settings.output_dir && (
                 <button
                   onClick={() => updateSettings({ output_dir: null })}
-                  className="shrink-0 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-red-400 text-sm rounded-lg transition-colors"
+                  className="shrink-0 px-3 py-2 border border-gray-700 hover:border-red-600 text-gray-500 hover:text-red-400 text-xs rounded-lg transition-colors tracking-wider"
                 >
-                  {t("settings.reset")}
+                  {t("settings.reset").toUpperCase()}
                 </button>
               )}
             </div>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-gray-300 text-sm">{t("settings.defaultFormats")}</label>
+            <label className="text-gray-500 text-[10px] tracking-widest">{t("settings.defaultFormats").toUpperCase()}</label>
             <div className="grid grid-cols-3 gap-3">
               <div className="flex flex-col gap-1">
-                <span className="text-gray-500 text-xs">{t("settings.defaultVideo")}</span>
+                <span className="text-gray-500 text-[10px] tracking-widest">{t("settings.defaultVideo").toUpperCase()}</span>
                 <select
                   value={settings.default_video_format}
                   onChange={(e) => updateSettings({ default_video_format: e.target.value })}
@@ -154,7 +159,7 @@ export function SettingsPage() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-gray-500 text-xs">{t("settings.defaultAudio")}</span>
+                <span className="text-gray-500 text-[10px] tracking-widest">{t("settings.defaultAudio").toUpperCase()}</span>
                 <select
                   value={settings.default_audio_format}
                   onChange={(e) => updateSettings({ default_audio_format: e.target.value })}
@@ -166,7 +171,7 @@ export function SettingsPage() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-gray-500 text-xs">{t("settings.defaultImage")}</span>
+                <span className="text-gray-500 text-[10px] tracking-widest">{t("settings.defaultImage").toUpperCase()}</span>
                 <select
                   value={settings.default_image_format}
                   onChange={(e) => updateSettings({ default_image_format: e.target.value })}
@@ -184,14 +189,19 @@ export function SettingsPage() {
         {/* ── About ───────────────────────────────────────────────────────── */}
         <SectionCard title={t("settings.about")}>
           <div className="flex items-center justify-between">
-            <span className="text-white text-sm font-medium">MediaForge</span>
+            <span
+              className="text-gray-100 text-sm font-bold tracking-wide"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              MEDIAFORGE
+            </span>
             {version && (
-              <span className="text-gray-500 text-xs">
-                {t("settings.version")} {version}
+              <span className="text-gray-500 text-[10px] tracking-widest">
+                v{version}
               </span>
             )}
           </div>
-          <p className="text-gray-500 text-xs">{t("settings.localOnly")}</p>
+          <p className="text-gray-500 text-[10px] tracking-widest">{t("settings.localOnly").toUpperCase()}</p>
         </SectionCard>
 
       </div>

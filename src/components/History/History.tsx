@@ -7,11 +7,11 @@ import type { HistoryItem } from "../../hooks/useHistory";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function mediaIcon(type: HistoryItem["media_type"]) {
+function mediaCode(type: HistoryItem["media_type"]) {
     switch (type) {
-        case "video": return "🎬";
-        case "audio": return "🎵";
-        case "image": return "🖼️";
+        case "video": return "VID";
+        case "audio": return "AUD";
+        case "image": return "IMG";
     }
 }
 
@@ -43,25 +43,27 @@ function HistoryRow({ item, t }: { item: HistoryItem; t: TFunction }) {
         invoke("open_folder", { file_path: item.output_path } as unknown as Record<string, unknown>).catch(() => { });
 
     return (
-        <div className="group flex items-center gap-3 px-4 py-3 hover:bg-gray-800/60 rounded-xl transition-colors">
-            {/* Icon */}
-            <span className="text-xl shrink-0 select-none">{mediaIcon(item.media_type)}</span>
+        <div className="group flex items-center gap-3 px-4 py-3 hover:bg-gray-800/40 transition-colors">
+            {/* Type badge */}
+            <span className="text-[8px] font-bold tracking-wider text-indigo-400 bg-indigo-950 px-2 py-1 rounded shrink-0">
+                {mediaCode(item.media_type)}
+            </span>
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-                <p className="text-sm text-white font-medium truncate" title={item.file_name}>
+                <p className="text-xs text-gray-200 font-medium truncate" title={item.file_name}>
                     {item.file_name}
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                    <span className="uppercase font-mono">{item.source_format}</span>
+                <p className="text-[10px] text-gray-500 mt-0.5 tracking-wider">
+                    <span className="uppercase">{item.source_format}</span>
                     {" → "}
-                    <span className="uppercase font-mono">{item.target_format}</span>
-                    {item.file_size && <span> • {item.file_size}</span>}
+                    <span className="uppercase">{item.target_format}</span>
+                    {item.file_size && <span> · {item.file_size}</span>}
                 </p>
             </div>
 
             {/* Date */}
-            <span className="text-xs text-gray-600 shrink-0 hidden sm:block">
+            <span className="text-[10px] text-gray-600 shrink-0 hidden sm:block">
                 {formatDate(item.timestamp, t)}
             </span>
 
@@ -70,16 +72,16 @@ function HistoryRow({ item, t }: { item: HistoryItem; t: TFunction }) {
                 <button
                     onClick={handleOpenFile}
                     title={t("history.openFile")}
-                    className="p-1.5 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-indigo-400 transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-gray-700 text-gray-500 hover:text-indigo-400 transition-colors text-xs"
                 >
                     ↗
                 </button>
                 <button
                     onClick={handleOpenFolder}
                     title={t("history.openFolder")}
-                    className="p-1.5 rounded-lg hover:bg-gray-700 text-gray-400 hover:text-indigo-400 transition-colors text-base"
+                    className="p-1.5 rounded-lg hover:bg-gray-700 text-gray-500 hover:text-indigo-400 transition-colors text-xs"
                 >
-                    📂
+                    ⬛
                 </button>
             </div>
         </div>
@@ -107,17 +109,23 @@ export function History() {
         <div className="flex flex-col gap-4 p-6 h-full overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h2 className="text-white text-xl font-semibold">{t("history.title")}</h2>
+                <div>
+                    <h2
+                        className="text-gray-100 text-xl font-bold tracking-tight"
+                        style={{ fontFamily: "'Syne', sans-serif" }}
+                    >
+                        {t("history.title")}
+                    </h2>
+                </div>
                 {history.length > 0 && (
                     <button
                         onClick={handleClear}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${confirmClear
-                            ? "bg-red-600 text-white"
-                            : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-red-400"
+                        className={`px-3 py-1.5 rounded-lg text-[10px] tracking-widest transition-all border ${confirmClear
+                            ? "border-red-600 bg-red-950/40 text-red-400"
+                            : "border-gray-700 text-gray-500 hover:border-red-600 hover:text-red-400"
                             }`}
                     >
-                        <span>🗑️</span>
-                        <span>{confirmClear ? t("history.clearConfirm") : t("history.clear")}</span>
+                        {(confirmClear ? t("history.clearConfirm") : t("history.clear")).toUpperCase()}
                     </button>
                 )}
             </div>
@@ -125,19 +133,19 @@ export function History() {
             {/* Content */}
             {isLoading ? (
                 <div className="flex items-center justify-center flex-1">
-                    <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                 </div>
             ) : history.length === 0 ? (
                 <div className="flex flex-col items-center justify-center flex-1 text-gray-500 gap-3">
-                    <span className="text-5xl">🕒</span>
-                    <p className="text-sm">{t("history.empty")}</p>
+                    <span className="text-[10px] tracking-widest">LOG</span>
+                    <p className="text-xs tracking-wider">{t("history.empty")}</p>
                 </div>
             ) : (
-                <div className="flex flex-col bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                <div className="flex flex-col bg-gray-900 rounded-xl border border-gray-700 overflow-hidden">
                     {history.map((item, idx) => (
                         <div
                             key={item.id}
-                            className={idx !== history.length - 1 ? "border-b border-gray-800/60" : ""}
+                            className={idx !== history.length - 1 ? "border-b border-gray-700/60" : ""}
                         >
                             <HistoryRow item={item} t={t} />
                         </div>

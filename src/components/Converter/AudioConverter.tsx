@@ -191,53 +191,53 @@ export function AudioConverter() {
 
   // ── Options panel (shared between modes) ──────────────────────────────────
 
+  const selectCls = "bg-gray-800 border border-gray-700 text-gray-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-600";
+
   const optionsPanel = (
     <>
-      <div className="flex items-center gap-4 flex-wrap">
-        <label className="text-gray-400 text-sm shrink-0">{t("converter.output_format")}</label>
-        <select
-          value={outputFormat}
-          onChange={(e) => handleFormatChange(e.target.value as AudioFormat)}
-          className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
-        >
+      {/* Format pills */}
+      <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
+        <div className="text-[10px] text-gray-500 tracking-widest mb-3">
+          {t("converter.output_format").toUpperCase()}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
           {AUDIO_FORMATS.map((f) => (
-            <option key={f} value={f}>{f.toUpperCase()}</option>
+            <button
+              key={f}
+              onClick={() => handleFormatChange(f)}
+              className={`px-3 py-1.5 rounded-md text-[11px] font-medium tracking-wider transition-all border ${
+                outputFormat === f
+                  ? "border-indigo-600 bg-indigo-950 text-indigo-400"
+                  : "border-gray-700 text-gray-500 hover:border-indigo-600 hover:text-indigo-400"
+              }`}
+            >
+              {f.toUpperCase()}
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
+      {/* Advanced toggle */}
       <button
         onClick={() => setShowAdvanced((v) => !v)}
-        className="flex items-center gap-2 text-indigo-400 text-sm w-fit hover:text-indigo-300 transition-colors"
+        className="flex items-center gap-2 text-indigo-400 text-xs w-fit hover:text-indigo-300 transition-colors tracking-wider"
       >
-        <span className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}>▶</span>
-        {t("converter.advancedOptions")}
+        <span className={`transition-transform text-[8px] ${showAdvanced ? "rotate-90" : ""}`}>▶</span>
+        {t("converter.advancedOptions").toUpperCase()}
       </button>
 
       {showAdvanced && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-900 rounded-xl p-4 border border-gray-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-900 rounded-xl p-4 border border-gray-700">
           <div className="flex flex-col gap-1.5">
-            <label className="text-gray-400 text-xs font-medium">{t("converter.bitrate")}</label>
-            <select
-              value={bitrate ?? ""}
-              onChange={(e) => setBitrate(e.target.value || undefined)}
-              className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
-            >
-              {BITRATES.map((b) => (
-                <option key={b.label} value={b.value ?? ""}>{b.label}</option>
-              ))}
+            <label className="text-gray-500 text-[10px] tracking-widest">{t("converter.bitrate").toUpperCase()}</label>
+            <select value={bitrate ?? ""} onChange={(e) => setBitrate(e.target.value || undefined)} className={selectCls}>
+              {BITRATES.map((b) => <option key={b.label} value={b.value ?? ""}>{b.label}</option>)}
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-gray-400 text-xs font-medium">{t("converter.sampleRate")}</label>
-            <select
-              value={sampleRate ?? ""}
-              onChange={(e) => setSampleRate(e.target.value || undefined)}
-              className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
-            >
-              {SAMPLE_RATES.map((s) => (
-                <option key={s.label} value={s.value ?? ""}>{s.label}</option>
-              ))}
+            <label className="text-gray-500 text-[10px] tracking-widest">{t("converter.sampleRate").toUpperCase()}</label>
+            <select value={sampleRate ?? ""} onChange={(e) => setSampleRate(e.target.value || undefined)} className={selectCls}>
+              {SAMPLE_RATES.map((s) => <option key={s.label} value={s.value ?? ""}>{s.label}</option>)}
             </select>
           </div>
           <div className="flex items-center gap-3 col-span-full">
@@ -252,10 +252,10 @@ export function AudioConverter() {
               />
             </button>
             <label
-              className="text-gray-300 text-sm cursor-pointer"
+              className="text-gray-300 text-xs cursor-pointer tracking-wider"
               onClick={() => setNormalize((v) => !v)}
             >
-              {t("converter.normalize")}
+              {t("converter.normalize").toUpperCase()}
             </label>
           </div>
         </div>
@@ -269,19 +269,27 @@ export function AudioConverter() {
     <div className="flex flex-col gap-5 p-6 h-full overflow-y-auto">
       {/* Header + mode toggle */}
       <div className="flex items-center justify-between">
-        <h2 className="text-white text-xl font-semibold">{t("nav.audio")}</h2>
-        <div className="flex bg-gray-800 rounded-lg p-0.5 text-sm">
+        <div>
+          <h2
+            className="text-gray-100 text-xl font-bold tracking-tight"
+            style={{ fontFamily: "'Syne', sans-serif" }}
+          >
+            {t("nav.audio")}
+          </h2>
+          <p className="text-[10px] text-gray-500 tracking-widest mt-0.5">100% LOCAL</p>
+        </div>
+        <div className="flex bg-gray-800 border border-gray-700 rounded-lg p-0.5 text-xs">
           <button
             onClick={() => { setMode("single"); reset(); }}
-            className={`px-3 py-1.5 rounded-md transition-colors ${mode === "single" ? "bg-indigo-600 text-white" : "text-gray-400 hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-md transition-colors tracking-wider ${mode === "single" ? "bg-indigo-950 text-indigo-400" : "text-gray-500 hover:text-gray-300"}`}
           >
-            {t("batch.single")}
+            {t("batch.single").toUpperCase()}
           </button>
           <button
             onClick={() => { setMode("batch"); reset(); }}
-            className={`px-3 py-1.5 rounded-md transition-colors ${mode === "batch" ? "bg-indigo-600 text-white" : "text-gray-400 hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-md transition-colors tracking-wider ${mode === "batch" ? "bg-indigo-950 text-indigo-400" : "text-gray-500 hover:text-gray-300"}`}
           >
-            {t("batch.toggle")}
+            {t("batch.toggle").toUpperCase()}
           </button>
         </div>
       </div>
@@ -329,9 +337,10 @@ export function AudioConverter() {
               {optionsPanel}
               <button
                 onClick={handleConvert}
-                className="w-fit px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-lg transition-colors"
+                className="w-full py-3 bg-indigo-600 hover:opacity-90 active:scale-[0.99] text-white font-bold text-xs rounded-xl transition-all tracking-widest"
+                style={{ fontFamily: "'Syne', sans-serif" }}
               >
-                {t("converter.convert")}
+                {t("converter.convert").toUpperCase()}
               </button>
             </>
           )}
@@ -379,9 +388,10 @@ export function AudioConverter() {
               {optionsPanel}
               <button
                 onClick={handleConvertBatch}
-                className="w-fit px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-lg transition-colors"
+                className="w-full py-3 bg-indigo-600 hover:opacity-90 active:scale-[0.99] text-white font-bold text-xs rounded-xl transition-all tracking-widest"
+                style={{ fontFamily: "'Syne', sans-serif" }}
               >
-                {t("converter.convert")} ({batchFiles.length})
+                {t("converter.convert").toUpperCase()} ({batchFiles.length})
               </button>
             </>
           )}
@@ -414,16 +424,17 @@ export function AudioConverter() {
                         } as unknown as Record<string, unknown>);
                       }
                     }}
-                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm rounded-lg transition-colors"
+                    className="px-4 py-2 border border-gray-700 hover:border-gray-600 text-gray-300 text-xs rounded-lg transition-colors tracking-wider"
                   >
-                    {t("result.openFolder")}
+                    {t("result.openFolder").toUpperCase()}
                   </button>
                 )}
                 <button
                   onClick={() => { reset(); setBatchFiles([]); }}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg transition-colors"
+                  className="px-4 py-2 bg-indigo-600 hover:opacity-90 text-white text-xs rounded-lg transition-all tracking-wider font-bold"
+                  style={{ fontFamily: "'Syne', sans-serif" }}
                 >
-                  {t("result.newConversion")}
+                  {t("result.newConversion").toUpperCase()}
                 </button>
               </div>
             </div>

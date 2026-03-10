@@ -63,7 +63,7 @@ export function DropZone({
   return (
     <div
       onClick={!disabled ? handleClick : undefined}
-      className={`border-2 border-dashed rounded-xl transition-all duration-200 ${
+      className={`border border-dashed rounded-xl transition-all duration-200 ${
         disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
       } ${borderColor} ${
         className ?? "flex flex-col items-center justify-center p-8 gap-3"

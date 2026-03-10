@@ -1,32 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap');
 @import "tailwindcss";
 
+/* ── Theme overrides (dark base) ─────────────────────────────────────────── */
+@theme {
+  /* Gray palette → dark matte backgrounds */
+  --color-gray-950: #0d0d0f;
+  --color-gray-900: #141417;
+  --color-gray-800: #1c1c21;
+  --color-gray-700: #2a2a32;
+  --color-gray-600: #3a3850;
+  --color-gray-500: #5a5870;
+  --color-gray-400: #7a788a;
+  --color-gray-300: #a0a0b8;
+  --color-gray-200: #c8c6d8;
+  --color-gray-100: #e8e6f0;
+
+  /* Indigo → violet accent */
+  --color-indigo-950: #1a1030;
+  --color-indigo-900: #2d2456;
+  --color-indigo-700: #5040a0;
+  --color-indigo-600: #7c6aff;
+  --color-indigo-500: #8e7fff;
+  --color-indigo-400: #a099ff;
+  --color-indigo-300: #b8b2ff;
+
+  /* Fonts */
+  --font-family-sans: 'DM Mono', 'Fira Code', ui-monospace, monospace;
+  --font-family-mono: 'DM Mono', 'Fira Code', ui-monospace, monospace;
+}
+
 :root {
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'DM Mono', 'Fira Code', ui-monospace, monospace;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Dark mode (class-based) ─────────────────────────────────────────────── */
+/* ── Dark mode ───────────────────────────────────────────────────────────── */
 html.dark {
   color-scheme: dark;
 }
 
-/* ── Light mode: invert the gray palette so all components flip naturally ── */
+/* ── Light mode: warm-tinted palette ─────────────────────────────────────── */
 html:not(.dark) {
   color-scheme: light;
-  --color-gray-950: oklch(0.985 0 0);
-  --color-gray-900: oklch(0.97 0 0);
-  --color-gray-800: oklch(0.935 0 0);
-  --color-gray-700: oklch(0.88 0 0);
-  --color-gray-600: oklch(0.78 0 0);
-  --color-gray-500: oklch(0.58 0 0);
-  --color-gray-400: oklch(0.42 0 0);
-  --color-gray-300: oklch(0.32 0 0);
-  --color-gray-200: oklch(0.22 0 0);
-  --color-gray-100: oklch(0.14 0 0);
-  --color-white: oklch(0.13 0 0);
+  --color-gray-950: #f0eff4;
+  --color-gray-900: #ffffff;
+  --color-gray-800: #f7f6fb;
+  --color-gray-700: #e2e0eb;
+  --color-gray-600: #c5c3d0;
+  --color-gray-500: #9592a8;
+  --color-gray-400: #6e6b80;
+  --color-gray-300: #4a4860;
+  --color-gray-200: #2d2b40;
+  --color-gray-100: #1a1825;
+  --color-white: #1a1825;
+  --color-indigo-950: #ede9ff;
+  --color-indigo-900: #ddd5ff;
 }
 
 * {
@@ -40,17 +71,25 @@ html, body, #root {
   overflow: hidden;
 }
 
+/* ── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-gray-700); border-radius: 2px; }
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes progress-glow {
+  0%, 100% { box-shadow: 0 0 8px #7c6aff55; }
+  50%       { box-shadow: 0 0 18px #7c6aff88; }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.2s ease-out;
-}
+.animate-fade-in       { animation: fade-in 0.2s ease-out; }
+.animate-slide-in      { animation: slide-in 0.2s ease forwards; }
+.animate-progress-glow { animation: progress-glow 2s ease infinite; }

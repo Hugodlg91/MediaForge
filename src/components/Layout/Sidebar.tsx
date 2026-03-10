@@ -7,41 +7,49 @@ interface SidebarProps {
   onChange: (section: NavSection) => void;
 }
 
-const navItems: { key: NavSection; icon: string }[] = [
-  { key: "image", icon: "🖼️" },
-  { key: "video", icon: "🎬" },
-  { key: "audio", icon: "🎵" },
-  { key: "history", icon: "🕒" },
-  { key: "settings", icon: "⚙️" },
+const navItems: { key: NavSection; code: string }[] = [
+  { key: "image",    code: "IMG" },
+  { key: "video",    code: "VID" },
+  { key: "audio",    code: "AUD" },
+  { key: "history",  code: "LOG" },
+  { key: "settings", code: "CFG" },
 ];
 
 export function Sidebar({ active, onChange }: SidebarProps) {
   const { t } = useTranslation();
 
   return (
-    <aside className="w-56 shrink-0 flex flex-col bg-gray-900 border-r border-gray-800 h-full">
-      <div className="px-5 py-5 border-b border-gray-800">
-        <h1 className="text-indigo-400 font-bold text-lg tracking-tight">MediaForge</h1>
+    <aside className="w-16 shrink-0 flex flex-col bg-gray-900 border-r border-gray-700 h-full">
+      {/* Logo */}
+      <div className="flex items-center justify-center h-12 border-b border-gray-700 shrink-0">
+        <span
+          className="text-indigo-400 font-bold text-xl leading-none"
+          style={{ fontFamily: "'Syne', sans-serif" }}
+        >
+          M
+        </span>
       </div>
-      <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
-        {navItems.map(({ key, icon }) => (
+
+      {/* Nav items */}
+      <nav className="flex flex-col items-center gap-1 py-3 flex-1">
+        {navItems.map(({ key, code }) => (
           <button
             key={key}
             onClick={() => onChange(key)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
+            title={t(`nav.${key}`)}
+            className={`relative w-11 h-11 rounded-lg flex items-center justify-center transition-all ${
               active === key
-                ? "bg-indigo-600 text-white"
-                : "text-gray-400 hover:text-white hover:bg-gray-800"
+                ? "bg-indigo-950 text-indigo-400"
+                : "text-gray-500 hover:bg-indigo-950/40 hover:text-indigo-400"
             }`}
           >
-            <span className="text-base">{icon}</span>
-            {t(`nav.${key}`)}
+            {active === key && (
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-indigo-600 rounded-r" />
+            )}
+            <span className="text-[8px] font-bold tracking-wider">{code}</span>
           </button>
         ))}
       </nav>
-      <div className="px-4 py-3 border-t border-gray-800">
-        <p className="text-xs text-gray-600 text-center">v0.1.0</p>
-      </div>
     </aside>
   );
 }

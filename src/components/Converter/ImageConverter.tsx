@@ -232,19 +232,27 @@ export function ImageConverter() {
     <div className="flex flex-col gap-5 p-6 h-full overflow-y-auto">
       {/* Header + mode toggle */}
       <div className="flex items-center justify-between">
-        <h2 className="text-white text-xl font-semibold">{t("nav.image")}</h2>
-        <div className="flex bg-gray-800 rounded-lg p-0.5 text-sm">
+        <div>
+          <h2
+            className="text-gray-100 text-xl font-bold tracking-tight"
+            style={{ fontFamily: "'Syne', sans-serif" }}
+          >
+            {t("nav.image")}
+          </h2>
+          <p className="text-[10px] text-gray-500 tracking-widest mt-0.5">100% LOCAL</p>
+        </div>
+        <div className="flex bg-gray-800 border border-gray-700 rounded-lg p-0.5 text-xs">
           <button
             onClick={() => { setMode("single"); reset(); }}
-            className={`px-3 py-1.5 rounded-md transition-colors ${mode === "single" ? "bg-indigo-600 text-white" : "text-gray-400 hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-md transition-colors tracking-wider ${mode === "single" ? "bg-indigo-950 text-indigo-400" : "text-gray-500 hover:text-gray-300"}`}
           >
-            {t("image.singleMode")}
+            {t("image.singleMode").toUpperCase()}
           </button>
           <button
             onClick={() => { setMode("batch"); reset(); }}
-            className={`px-3 py-1.5 rounded-md transition-colors ${mode === "batch" ? "bg-indigo-600 text-white" : "text-gray-400 hover:text-white"}`}
+            className={`px-3 py-1.5 rounded-md transition-colors tracking-wider ${mode === "batch" ? "bg-indigo-950 text-indigo-400" : "text-gray-500 hover:text-gray-300"}`}
           >
-            {t("image.batchMode")}
+            {t("image.batchMode").toUpperCase()}
           </button>
         </div>
       </div>
@@ -312,41 +320,47 @@ export function ImageConverter() {
           {/* Options (show only when file selected and not converting) */}
           {inputPath && !isConverting && !isDone && (
             <>
-              {/* Format */}
-              <div className="flex items-center gap-4 flex-wrap">
-                <label className="text-gray-400 text-sm shrink-0">
-                  {t("converter.output_format")}
-                </label>
-                <select
-                  value={outputFormat}
-                  onChange={(e) => handleFormatChange(e.target.value as ImageFormat)}
-                  className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
-                >
+              {/* Format pills */}
+              <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
+                <div className="text-[10px] text-gray-500 tracking-widest mb-3">
+                  {t("converter.output_format").toUpperCase()}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
                   {IMAGE_FORMATS.map((f) => (
-                    <option key={f} value={f}>{f.toUpperCase()}</option>
+                    <button
+                      key={f}
+                      onClick={() => handleFormatChange(f)}
+                      className={`px-3 py-1.5 rounded-md text-[11px] font-medium tracking-wider transition-all border ${
+                        outputFormat === f
+                          ? "border-indigo-600 bg-indigo-950 text-indigo-400"
+                          : "border-gray-700 text-gray-500 hover:border-indigo-600 hover:text-indigo-400"
+                      }`}
+                    >
+                      {f.toUpperCase()}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
               {/* Advanced toggle */}
               <button
                 onClick={() => setShowAdvanced((v) => !v)}
-                className="flex items-center gap-2 text-indigo-400 text-sm w-fit hover:text-indigo-300 transition-colors"
+                className="flex items-center gap-2 text-indigo-400 text-xs w-fit hover:text-indigo-300 transition-colors tracking-wider"
               >
-                <span className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}>▶</span>
-                {t("converter.advancedOptions")}
+                <span className={`transition-transform text-[8px] ${showAdvanced ? "rotate-90" : ""}`}>▶</span>
+                {t("converter.advancedOptions").toUpperCase()}
               </button>
 
               {showAdvanced && (
-                <div className="flex flex-col gap-4 bg-gray-900 rounded-xl p-4 border border-gray-800">
+                <div className="flex flex-col gap-4 bg-gray-900 rounded-xl p-4 border border-gray-700">
                   {/* Quality slider */}
                   {QUALITY_FORMATS.includes(outputFormat) && (
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between">
-                        <label className="text-gray-400 text-xs font-medium">
-                          {t("image.quality")}
+                        <label className="text-gray-500 text-[10px] tracking-widest">
+                          {t("image.quality").toUpperCase()}
                         </label>
-                        <span className="text-white text-xs font-medium">{quality}%</span>
+                        <span className="text-indigo-400 text-xs font-medium">{quality}%</span>
                       </div>
                       <input
                         type="range"
@@ -354,7 +368,7 @@ export function ImageConverter() {
                         max={100}
                         value={quality}
                         onChange={(e) => setQuality(Number(e.target.value))}
-                        className="w-full accent-indigo-500"
+                        className="w-full accent-indigo-600"
                       />
                     </div>
                   )}
@@ -373,17 +387,16 @@ export function ImageConverter() {
                         />
                       </button>
                       <label
-                        className="text-gray-300 text-sm cursor-pointer"
+                        className="text-gray-300 text-xs cursor-pointer tracking-wider"
                         onClick={() => setResizeEnabled((v) => !v)}
                       >
-                        {t("image.resize")}
+                        {t("image.resize").toUpperCase()}
                       </label>
                     </div>
 
                     {resizeEnabled && (
                       <div className="flex flex-col gap-3 ml-13 pl-1">
-                        {/* Presets */}
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5">
                           {["Original", "50%", "25%", "720p", "1080p"].map((p) => (
                             <button
                               key={p}
@@ -392,41 +405,33 @@ export function ImageConverter() {
                                   ? (setResizeWidth(""), setResizeHeight(""), setResizeEnabled(false))
                                   : applyPreset(p)
                               }
-                              className="px-2.5 py-1 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-md transition-colors border border-gray-700"
+                              className="px-2.5 py-1 text-[11px] border border-gray-700 hover:border-indigo-600 hover:text-indigo-400 text-gray-500 rounded-md transition-colors tracking-wider"
                             >
                               {p}
                             </button>
                           ))}
                         </div>
-
-                        {/* Width / Height inputs */}
                         <div className="flex items-center gap-3 flex-wrap">
                           <div className="flex flex-col gap-1">
-                            <label className="text-gray-500 text-xs">{t("image.width")}</label>
+                            <label className="text-gray-500 text-[10px] tracking-widest">{t("image.width").toUpperCase()}</label>
                             <input
-                              type="number"
-                              min={1}
-                              value={resizeWidth}
+                              type="number" min={1} value={resizeWidth}
                               onChange={(e) => setResizeWidth(e.target.value)}
                               placeholder="px"
-                              className="w-24 bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+                              className="w-24 bg-gray-800 border border-gray-700 text-gray-200 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-600"
                             />
                           </div>
                           <span className="text-gray-600 mt-4">×</span>
                           <div className="flex flex-col gap-1">
-                            <label className="text-gray-500 text-xs">{t("image.height")}</label>
+                            <label className="text-gray-500 text-[10px] tracking-widest">{t("image.height").toUpperCase()}</label>
                             <input
-                              type="number"
-                              min={1}
-                              value={resizeHeight}
+                              type="number" min={1} value={resizeHeight}
                               onChange={(e) => setResizeHeight(e.target.value)}
                               placeholder="px"
-                              className="w-24 bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500"
+                              className="w-24 bg-gray-800 border border-gray-700 text-gray-200 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-600"
                             />
                           </div>
                         </div>
-
-                        {/* Keep aspect ratio */}
                         <div className="flex items-center gap-3">
                           <button
                             role="checkbox"
@@ -439,10 +444,10 @@ export function ImageConverter() {
                             />
                           </button>
                           <label
-                            className="text-gray-300 text-sm cursor-pointer"
+                            className="text-gray-300 text-xs cursor-pointer tracking-wider"
                             onClick={() => setKeepAspectRatio((v) => !v)}
                           >
-                            {t("image.keepAspectRatio")}
+                            {t("image.keepAspectRatio").toUpperCase()}
                           </label>
                         </div>
                       </div>
@@ -453,9 +458,10 @@ export function ImageConverter() {
 
               <button
                 onClick={handleConvertSingle}
-                className="w-fit px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-lg transition-colors"
+                className="w-full py-3 bg-indigo-600 hover:opacity-90 active:scale-[0.99] text-white font-bold text-xs rounded-xl transition-all tracking-widest"
+                style={{ fontFamily: "'Syne', sans-serif" }}
               >
-                {t("converter.convert")}
+                {t("converter.convert").toUpperCase()}
               </button>
             </>
           )}
@@ -504,42 +510,46 @@ export function ImageConverter() {
           {/* Options */}
           {batchFiles.length > 0 && !isConverting && !isDone && (
             <>
-              <div className="flex items-center gap-4">
-                <label className="text-gray-400 text-sm shrink-0">
-                  {t("converter.output_format")}
-                </label>
-                <select
-                  value={outputFormat}
-                  onChange={(e) => setOutputFormat(e.target.value as ImageFormat)}
-                  className="bg-gray-800 border border-gray-700 text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500"
-                >
+              <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
+                <div className="text-[10px] text-gray-500 tracking-widest mb-3">
+                  {t("converter.output_format").toUpperCase()}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
                   {IMAGE_FORMATS.map((f) => (
-                    <option key={f} value={f}>{f.toUpperCase()}</option>
+                    <button
+                      key={f}
+                      onClick={() => setOutputFormat(f)}
+                      className={`px-3 py-1.5 rounded-md text-[11px] font-medium tracking-wider transition-all border ${
+                        outputFormat === f
+                          ? "border-indigo-600 bg-indigo-950 text-indigo-400"
+                          : "border-gray-700 text-gray-500 hover:border-indigo-600 hover:text-indigo-400"
+                      }`}
+                    >
+                      {f.toUpperCase()}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
               {QUALITY_FORMATS.includes(outputFormat) && (
                 <div className="flex items-center gap-4">
-                  <label className="text-gray-400 text-sm shrink-0">
-                    {t("image.quality")} : {quality}%
+                  <label className="text-gray-500 text-[10px] tracking-widest shrink-0">
+                    {t("image.quality").toUpperCase()} : <span className="text-indigo-400">{quality}%</span>
                   </label>
                   <input
-                    type="range"
-                    min={1}
-                    max={100}
-                    value={quality}
+                    type="range" min={1} max={100} value={quality}
                     onChange={(e) => setQuality(Number(e.target.value))}
-                    className="flex-1 accent-indigo-500"
+                    className="flex-1 accent-indigo-600"
                   />
                 </div>
               )}
 
               <button
                 onClick={handleConvertBatch}
-                className="w-fit px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-lg transition-colors"
+                className="w-full py-3 bg-indigo-600 hover:opacity-90 active:scale-[0.99] text-white font-bold text-xs rounded-xl transition-all tracking-widest"
+                style={{ fontFamily: "'Syne', sans-serif" }}
               >
-                {t("converter.convert")} ({batchFiles.length})
+                {t("converter.convert").toUpperCase()} ({batchFiles.length})
               </button>
             </>
           )}
@@ -574,16 +584,17 @@ export function ImageConverter() {
                         } as unknown as Record<string, unknown>);
                       }
                     }}
-                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm rounded-lg transition-colors"
+                    className="px-4 py-2 border border-gray-700 hover:border-gray-600 text-gray-300 text-xs rounded-lg transition-colors tracking-wider"
                   >
-                    {t("result.openFolder")}
+                    {t("result.openFolder").toUpperCase()}
                   </button>
                 )}
                 <button
                   onClick={() => { reset(); setBatchFiles([]); }}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg transition-colors"
+                  className="px-4 py-2 bg-indigo-600 hover:opacity-90 text-white text-xs rounded-lg transition-all tracking-wider font-bold"
+                  style={{ fontFamily: "'Syne', sans-serif" }}
                 >
-                  {t("result.newConversion")}
+                  {t("result.newConversion").toUpperCase()}
                 </button>
               </div>
             </div>
