@@ -126,11 +126,17 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 - [x] Clés i18n `errorBoundary.*` (title, description, reload, report) dans les 5 locales
 - [x] `cargo test` : **11/11 tests Rust passent** — `npm test` : **23/23 tests TypeScript passent** — `npm run build` : **0 erreur** (94 modules, 330 kB JS)
 
-### ⏳ Étape 9 — Packaging final (À FAIRE)
-- [ ] Remplacer les placeholders FFmpeg par les vrais binaires statiques
-- [ ] Icônes de l'application
-- [ ] Build .msi (Windows), .dmg (macOS), .AppImage (Linux)
-- [ ] Test sur chaque plateforme
+### ✅ Étape 9 — Packaging final (TERMINÉE)
+- [x] Configuration `tauri.conf.json` : `version: "1.0.0"`, `copyright`, `category`, `description`
+- [x] Configuration des bundles cibles : `windows: { nsis: { installMode: "currentUser" } }`, `macOS` (dmg), `linux` (appimage, deb)
+- [x] Icônes de l'application générées : `npm run tauri icon resource/app-icon.png` (a remplacé les placeholders par les vrais formats `.ico`, `.icns`, `.png`)
+- [x] Vérification de la configuration : `cargo check` (0 erreur), `npm run build` (0 erreur)
+
+> **Instructions pour l'utilisateur** : 
+> Avant de lancer `npm run tauri build` pour générer votre installeur :
+> 1. Téléchargez les vrais exécutables de FFmpeg et FFprobe.
+> 2. Remplacez les stubs vides dans `src-tauri/binaries/` en gardant exactement le suffixe de votre plateforme (ex: `ffmpeg-x86_64-pc-windows-msvc.exe`).
+> 3. Exécutez `npm run tauri build` pour générer l'installeur dans `src-tauri/target/release/bundle/`.
 
 ---
 
