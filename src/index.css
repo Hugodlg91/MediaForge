@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Dark mode (class-based) ─────────────────────────────────────────────── */
+html.dark {
+  color-scheme: dark;
+}
+
+/* ── Light mode: invert the gray palette so all components flip naturally ── */
+html:not(.dark) {
+  color-scheme: light;
+  --color-gray-950: oklch(0.985 0 0);
+  --color-gray-900: oklch(0.97 0 0);
+  --color-gray-800: oklch(0.935 0 0);
+  --color-gray-700: oklch(0.88 0 0);
+  --color-gray-600: oklch(0.78 0 0);
+  --color-gray-500: oklch(0.58 0 0);
+  --color-gray-400: oklch(0.42 0 0);
+  --color-gray-300: oklch(0.32 0 0);
+  --color-gray-200: oklch(0.22 0 0);
+  --color-gray-100: oklch(0.14 0 0);
+  --color-white: oklch(0.13 0 0);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}

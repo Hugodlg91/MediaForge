@@ -1,0 +1,127 @@
+{
+  "nav": {
+    "image": "Image",
+    "video": "Vidéo",
+    "audio": "Audio",
+    "history": "Historique",
+    "settings": "Paramètres"
+  },
+  "converter": {
+    "dropzone": "Déposez vos fichiers ici ou cliquez pour parcourir",
+    "dropzone_sub": "Supporte {{formats}}",
+    "output_format": "Format de sortie",
+    "convert": "Convertir",
+    "converting": "Conversion en cours...",
+    "add_files": "Ajouter des fichiers",
+    "clear": "Vider",
+    "options": "Options avancées",
+    "destination": "Dossier de destination",
+    "choose_folder": "Choisir un dossier",
+    "open_folder": "Ouvrir le dossier",
+    "quality": "Qualité",
+    "width": "Largeur",
+    "height": "Hauteur",
+    "resize_percent": "Redimensionner (%)",
+    "bitrate": "Bitrate",
+    "sample_rate": "Fréquence d'échantillonnage",
+    "codec": "Codec",
+    "resolution": "Résolution",
+    "normalize": "Normaliser le volume",
+    "custom": "Personnalisé",
+    "selectFile": "Cliquer pour changer de fichier",
+    "advancedOptions": "Options avancées",
+    "sampleRate": "Fréquence d'échantillonnage",
+    "cancel": "Annuler",
+    "done": "Conversion terminée !",
+    "error": "Erreur",
+    "convert_another": "Convertir un autre fichier"
+  },
+  "status": {
+    "ready": "Prêt",
+    "done": "Conversion terminée",
+    "error": "Erreur : {{message}}",
+    "progress": "{{percent}}%"
+  },
+  "history": {
+    "title": "Historique",
+    "empty": "Aucune conversion récente.",
+    "clear": "Vider l'historique",
+    "clearConfirm": "Confirmer ?",
+    "openFile": "Ouvrir le fichier",
+    "openFolder": "Ouvrir le dossier",
+    "mediaType": {
+      "image": "Image",
+      "video": "Vidéo",
+      "audio": "Audio"
+    },
+    "dateFormat": {
+      "today": "Aujourd'hui à {{time}}",
+      "yesterday": "Hier à {{time}}"
+    }
+  },
+  "image": {
+    "singleMode": "Fichier unique",
+    "batchMode": "Batch",
+    "selectImages": "Ajouter des images",
+    "quality": "Qualité",
+    "resize": "Redimensionner",
+    "width": "Largeur (px)",
+    "height": "Hauteur (px)",
+    "keepAspectRatio": "Conserver les proportions",
+    "batchSuccess": "{{count}} fichier(s) converti(s)",
+    "batchErrors": "{{count}} erreur(s)",
+    "fileInfo": {
+      "dimensions": "Dimensions",
+      "format": "Format",
+      "size": "Taille",
+      "hasAlpha": "Transparence"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "appearance": "Apparence",
+    "theme": "Thème",
+    "themeDark": "Sombre",
+    "themeLight": "Clair",
+    "language": "Langue",
+    "conversion": "Conversion",
+    "outputDir": "Dossier de sortie",
+    "outputDirDefault": "Même dossier que la source",
+    "chooseFolder": "Choisir un dossier",
+    "reset": "Réinitialiser",
+    "defaultFormats": "Formats par défaut",
+    "defaultVideo": "Vidéo",
+    "defaultAudio": "Audio",
+    "defaultImage": "Image",
+    "about": "À propos",
+    "version": "Version",
+    "localOnly": "100% local — aucune donnée envoyée"
+  },
+  "dropzone": {
+    "label": "Déposez des fichiers ici ou cliquez pour parcourir",
+    "or": "ou",
+    "browse": "Parcourir les fichiers",
+    "fileLoaded": "Cliquer pour changer le fichier"
+  },
+  "result": {
+    "success": "Conversion terminée !",
+    "openFolder": "Ouvrir le dossier",
+    "newConversion": "Nouvelle conversion"
+  },
+  "batch": {
+    "toggle": "Batch",
+    "single": "Fichier unique",
+    "fileCount": "{{count}} fichier(s) sélectionné(s)",
+    "progress": "Fichier {{index}} / {{total}}",
+    "removeFile": "Supprimer",
+    "results": "Résultats",
+    "successCount": "{{count}} succès",
+    "errorCount": "{{count}} erreur(s)"
+  },
+  "errorBoundary": {
+    "title": "Aïe, une erreur est survenue",
+    "description": "L'application a rencontré un problème inattendu.",
+    "reload": "Relancer l'application",
+    "report": "Si le problème persiste, n'hésitez pas à nous contacter."
+  }
+}

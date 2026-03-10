@@ -1,0 +1,127 @@
+{
+  "nav": {
+    "image": "Bild",
+    "video": "Video",
+    "audio": "Audio",
+    "history": "Verlauf",
+    "settings": "Einstellungen"
+  },
+  "converter": {
+    "dropzone": "Dateien hier ablegen oder klicken zum Durchsuchen",
+    "dropzone_sub": "Unterstützt {{formats}}",
+    "output_format": "Ausgabeformat",
+    "convert": "Konvertieren",
+    "converting": "Konvertierung läuft...",
+    "add_files": "Dateien hinzufügen",
+    "clear": "Leeren",
+    "options": "Erweiterte Optionen",
+    "destination": "Zielordner",
+    "choose_folder": "Ordner wählen",
+    "open_folder": "Ordner öffnen",
+    "quality": "Qualität",
+    "width": "Breite",
+    "height": "Höhe",
+    "resize_percent": "Größe ändern (%)",
+    "bitrate": "Bitrate",
+    "sample_rate": "Abtastrate",
+    "codec": "Codec",
+    "resolution": "Auflösung",
+    "normalize": "Lautstärke normalisieren",
+    "custom": "Benutzerdefiniert",
+    "selectFile": "Klicken um Datei zu ändern",
+    "advancedOptions": "Erweiterte Optionen",
+    "sampleRate": "Abtastrate",
+    "cancel": "Abbrechen",
+    "done": "Konvertierung abgeschlossen!",
+    "error": "Fehler",
+    "convert_another": "Weitere Datei konvertieren"
+  },
+  "status": {
+    "ready": "Bereit",
+    "done": "Konvertierung abgeschlossen",
+    "error": "Fehler: {{message}}",
+    "progress": "{{percent}}%"
+  },
+  "history": {
+    "title": "Verlauf",
+    "empty": "Keine aktuellen Konvertierungen.",
+    "clear": "Verlauf löschen",
+    "clearConfirm": "Bestätigen?",
+    "openFile": "Datei öffnen",
+    "openFolder": "Ordner öffnen",
+    "mediaType": {
+      "image": "Bild",
+      "video": "Video",
+      "audio": "Audio"
+    },
+    "dateFormat": {
+      "today": "Heute um {{time}}",
+      "yesterday": "Gestern um {{time}}"
+    }
+  },
+  "image": {
+    "singleMode": "Einzelne Datei",
+    "batchMode": "Stapel",
+    "selectImages": "Bilder hinzufügen",
+    "quality": "Qualität",
+    "resize": "Größe ändern",
+    "width": "Breite (px)",
+    "height": "Höhe (px)",
+    "keepAspectRatio": "Seitenverhältnis beibehalten",
+    "batchSuccess": "{{count}} Datei(en) konvertiert",
+    "batchErrors": "{{count}} Fehler",
+    "fileInfo": {
+      "dimensions": "Abmessungen",
+      "format": "Format",
+      "size": "Größe",
+      "hasAlpha": "Transparenz"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "appearance": "Erscheinungsbild",
+    "theme": "Design",
+    "themeDark": "Dunkel",
+    "themeLight": "Hell",
+    "language": "Sprache",
+    "conversion": "Konvertierung",
+    "outputDir": "Ausgabeordner",
+    "outputDirDefault": "Gleicher Ordner wie Quelle",
+    "chooseFolder": "Ordner wählen",
+    "reset": "Zurücksetzen",
+    "defaultFormats": "Standardformate",
+    "defaultVideo": "Video",
+    "defaultAudio": "Audio",
+    "defaultImage": "Bild",
+    "about": "Über",
+    "version": "Version",
+    "localOnly": "100% lokal — keine Daten gesendet"
+  },
+  "dropzone": {
+    "label": "Dateien hier ablegen oder klicken zum Durchsuchen",
+    "or": "oder",
+    "browse": "Dateien durchsuchen",
+    "fileLoaded": "Klicken um Datei zu ändern"
+  },
+  "result": {
+    "success": "Konvertierung abgeschlossen!",
+    "openFolder": "Ordner öffnen",
+    "newConversion": "Neue Konvertierung"
+  },
+  "batch": {
+    "toggle": "Stapel",
+    "single": "Einzelne Datei",
+    "fileCount": "{{count}} Datei(en) ausgewählt",
+    "progress": "Datei {{index}} / {{total}}",
+    "removeFile": "Entfernen",
+    "results": "Ergebnisse",
+    "successCount": "{{count}} erfolgreich",
+    "errorCount": "{{count}} Fehler"
+  },
+  "errorBoundary": {
+    "title": "Hoppla, ein Fehler ist aufgetreten",
+    "description": "Die Anwendung hat ein unerwartetes Problem festgestellt.",
+    "reload": "Anwendung neu starten",
+    "report": "Wenn das Problem weiterhin besteht, zögern Sie nicht, uns zu kontaktieren."
+  }
+}
