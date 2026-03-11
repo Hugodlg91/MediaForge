@@ -131,12 +131,12 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 - [x] Configuration des bundles cibles : `windows: { nsis: { installMode: "currentUser" } }`, `macOS` (dmg), `linux` (appimage, deb)
 - [x] Icônes de l'application générées : `npm run tauri icon resource/app-icon.png` (a remplacé les placeholders par les vrais formats `.ico`, `.icns`, `.png`)
 - [x] Vérification de la configuration : `cargo check` (0 erreur), `npm run build` (0 erreur)
+- [x] **Installeurs générés avec succès** :
+  - **NSIS (Recommandé)** : `src-tauri/target/release/bundle/nsis/MediaForge_1.0.0_x64-setup.exe`
+  - **MSI** : `src-tauri/target/release/bundle/msi/MediaForge_1.0.0_x64_en-US.msi`
 
-> **Instructions pour l'utilisateur** : 
-> Avant de lancer `npm run tauri build` pour générer votre installeur :
-> 1. Téléchargez les vrais exécutables de FFmpeg et FFprobe.
-> 2. Remplacez les stubs vides dans `src-tauri/binaries/` en gardant exactement le suffixe de votre plateforme (ex: `ffmpeg-x86_64-pc-windows-msvc.exe`).
-> 3. Exécutez `npm run tauri build` pour générer l'installeur dans `src-tauri/target/release/bundle/`.
+> **Instructions pour l'utilisateur concernant FFmpeg** : 
+> L'installeur actuel contient les *stubs vides* pour FFmpeg (car ce sont les fichiers présents dans `src-tauri/binaries/`). Pour avoir un installeur 100% fonctionnel, veuillez remplacer ces stubs par les vrais exécutables `ffmpeg-x86_64-pc-windows-msvc.exe` et relancer la commande de build.
 
 ---
 
