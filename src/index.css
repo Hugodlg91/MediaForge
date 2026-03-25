@@ -1,140 +1,307 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap');
 @import "tailwindcss";
 
-/* ── Tailwind v4 design tokens (for components still using Tailwind classes) ── */
+/* ── Tailwind v4 design tokens ──────────────────────────────────────────── */
 @theme {
-  /* Gray palette → dark matte backgrounds */
-  --color-gray-950: #0d0d0f;
-  --color-gray-900: #141417;
-  --color-gray-800: #1c1c21;
-  --color-gray-700: #2a2a32;
-  --color-gray-600: #3a3850;
-  --color-gray-500: #5a5870;
-  --color-gray-400: #7a788a;
-  --color-gray-300: #a0a0b8;
-  --color-gray-200: #c8c6d8;
-  --color-gray-100: #e8e6f0;
+  /* Gray palette — dark matte */
+  --color-gray-950: #0c0c0f;
+  --color-gray-900: #131318;
+  --color-gray-800: #1c1c23;
+  --color-gray-700: #28282f;
+  --color-gray-600: #3d3b4a;
+  --color-gray-500: #5e5c70;
+  --color-gray-400: #8a8799;
+  --color-gray-300: #b0aec0;
+  --color-gray-200: #d4d2e0;
+  --color-gray-100: #eeedF4;
+  --color-white:    #f4f3f9;
 
-  /* Indigo → violet accent */
-  --color-indigo-950: #1a1030;
-  --color-indigo-900: #2d2456;
-  --color-indigo-700: #5040a0;
+  /* Accent — violet */
+  --color-indigo-950: #160f2e;
+  --color-indigo-900: #281d54;
+  --color-indigo-700: #5544b8;
   --color-indigo-600: #7c6aff;
-  --color-indigo-500: #8e7fff;
-  --color-indigo-400: #a099ff;
-  --color-indigo-300: #b8b2ff;
+  --color-indigo-500: #9080ff;
+  --color-indigo-400: #a89cff;
+  --color-indigo-300: #c2baff;
 
-  /* Fonts */
-  --font-family-sans: 'DM Mono', 'Fira Code', ui-monospace, monospace;
-  --font-family-mono: 'DM Mono', 'Fira Code', ui-monospace, monospace;
+  /* Success */
+  --color-green-400: #34d399;
+  --color-green-500: #10b981;
+
+  /* Fonts — system stack only (100% offline) */
+  --font-family-sans: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-family-mono: ui-monospace, 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
 }
 
-/* ── Semantic tokens — dark theme (default) ───────────────────────────────── */
+/* ── Dark theme (default) ─────────────────────────────────────────────────── */
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg:         #0d0d0f;
-  --surface:    #141417;
-  --surface2:   #1c1c21;
-  --border:     #2a2a32;
-  --text:       #e8e6f0;
-  --muted:      #5a5870;
-  --accent:     #7c6aff;
-  --accent-dim: #1a1030;
+  --bg:          #0c0c0f;
+  --surface:     #131318;
+  --surface2:    #1c1c23;
+  --surface3:    #222228;
+  --border:      #28282f;
+  --border2:     #3d3b4a;
+  --text:        #eeedF4;
+  --text-sub:    #b0aec0;
+  --muted:       #5e5c70;
+  --accent:      #7c6aff;
+  --accent-hover:#9080ff;
+  --accent-dim:  #160f2e;
+  --success:     #10b981;
+  --error:       #f87171;
+  --shadow:      0 1px 3px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.3);
 }
 
-/* ── Semantic tokens — light theme ───────────────────────────────────────── */
+/* ── Light theme ──────────────────────────────────────────────────────────── */
 [data-theme="light"] {
   color-scheme: light;
-  --bg:         #f0eff4;
-  --surface:    #ffffff;
-  --surface2:   #f7f6fb;
-  --border:     #e2e0eb;
-  --text:       #1a1825;
-  --muted:      #9592a8;
-  --accent:     #7c6aff;
-  --accent-dim: #ede9ff;
+  --bg:          #f3f2f8;
+  --surface:     #ffffff;
+  --surface2:    #f8f7fc;
+  --surface3:    #f0eff6;
+  --border:      #e4e2ee;
+  --border2:     #d0cede;
+  --text:        #1a1825;
+  --text-sub:    #4a4860;
+  --muted:       #9592a8;
+  --accent:      #6c5ce7;
+  --accent-hover:#7c6aff;
+  --accent-dim:  #ede9ff;
+  --success:     #059669;
+  --error:       #dc2626;
+  --shadow:      0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.06);
 }
 
-/* ── Keep Tailwind colour-scheme for existing components ──────────────────── */
+/* ── Tailwind colour overrides — dark ─────────────────────────────────────── */
 html[data-theme="dark"] {
-  --color-gray-950: #0d0d0f;
-  --color-gray-900: #141417;
-  --color-gray-800: #1c1c21;
-  --color-gray-700: #2a2a32;
-  --color-gray-600: #3a3850;
-  --color-gray-500: #5a5870;
-  --color-gray-400: #7a788a;
-  --color-gray-300: #a0a0b8;
-  --color-gray-200: #c8c6d8;
-  --color-gray-100: #e8e6f0;
-  --color-indigo-950: #1a1030;
-  --color-indigo-900: #2d2456;
+  --color-gray-950: #0c0c0f;
+  --color-gray-900: #131318;
+  --color-gray-800: #1c1c23;
+  --color-gray-700: #28282f;
+  --color-gray-600: #3d3b4a;
+  --color-gray-500: #5e5c70;
+  --color-gray-400: #8a8799;
+  --color-gray-300: #b0aec0;
+  --color-gray-200: #d4d2e0;
+  --color-gray-100: #eeedF4;
+  --color-white:    #f4f3f9;
+  --color-indigo-950: #160f2e;
   --color-indigo-600: #7c6aff;
-  --color-indigo-400: #a099ff;
+  --color-indigo-400: #a89cff;
+  --color-green-400: #34d399;
+  --color-green-500: #10b981;
 }
 
+/* ── Tailwind colour overrides — light ────────────────────────────────────── */
 html[data-theme="light"] {
-  --color-gray-950: #f0eff4;
+  --color-gray-950: #f3f2f8;
   --color-gray-900: #ffffff;
-  --color-gray-800: #f7f6fb;
-  --color-gray-700: #e2e0eb;
-  --color-gray-600: #c5c3d0;
+  --color-gray-800: #f8f7fc;
+  --color-gray-700: #f0eff6;
+  --color-gray-600: #e4e2ee;
   --color-gray-500: #9592a8;
   --color-gray-400: #6e6b80;
   --color-gray-300: #4a4860;
   --color-gray-200: #2d2b40;
   --color-gray-100: #1a1825;
-  --color-white: #1a1825;
+  --color-white:    #1a1825;
   --color-indigo-950: #ede9ff;
-  --color-indigo-900: #ddd5ff;
-  --color-indigo-600: #7c6aff;
+  --color-indigo-600: #6c5ce7;
   --color-indigo-400: #6a5fe8;
+  --color-green-400: #059669;
+  --color-green-500: #047857;
 }
 
 /* ── Base ─────────────────────────────────────────────────────────────────── */
 :root {
-  font-family: 'DM Mono', 'Fira Code', ui-monospace, monospace;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #root {
   height: 100%;
   overflow: hidden;
-  background: var(--bg, #0d0d0f);
+  background: var(--bg, #0c0c0f);
+  color: var(--text, #eeedf4);
 }
 
-/* ── Scrollbar ────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 4px; }
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border, #2a2a32); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--border2, #3d3b4a); border-radius: 4px; }
 
-/* ── Animations ──────────────────────────────────────────────────────────── */
+/* ── Focus ring (global) ──────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+button:focus:not(:focus-visible),
+select:focus:not(:focus-visible) { outline: none; }
+
+/* ── Button base reset ─────────────────────────────────────────────────────── */
+button { border: none; background: none; cursor: pointer; font: inherit; }
+
+/* ── Shared UI utilities ──────────────────────────────────────────────────── */
+
+/* Primary button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 24px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+  letter-spacing: 0.01em;
+}
+.btn-primary:hover  { background: var(--accent-hover); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Ghost button */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--text-sub);
+  font-weight: 500;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.btn-ghost:active { transform: scale(0.98); }
+
+/* Danger ghost */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.btn-danger:hover {
+  border-color: var(--error);
+  color: var(--error);
+  background: rgba(248, 113, 113, 0.06);
+}
+
+/* Segmented control */
+.seg-ctrl {
+  display: flex;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.seg-ctrl button {
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+.seg-ctrl button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+.seg-ctrl button:not(.active):hover { color: var(--text-sub); }
+
+/* Card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Format pill button */
+.fmt-pill {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--border2);
+  color: var(--text-sub);
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.fmt-pill:hover         { border-color: var(--accent); color: var(--accent); }
+.fmt-pill.active        { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+
+/* Section label */
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* ── Animations ─────────────────────────────────────────────────────────────── */
 @keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes slide-in {
-  from { opacity: 0; transform: translateX(-8px); }
+  from { opacity: 0; transform: translateX(-6px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-@keyframes progress-glow {
-  0%, 100% { box-shadow: 0 0 8px var(--accent); }
-  50%       { box-shadow: 0 0 18px var(--accent); }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.75; }
 }
 
-.slide-in { animation: slide-in 0.2s ease forwards; }
-.fade-in  { animation: fade-in 0.2s ease forwards; }
+.fade-in             { animation: fade-in 0.2s ease forwards; }
+.slide-in            { animation: slide-in 0.18s ease forwards; }
+.animate-fade-in     { animation: fade-in 0.2s ease forwards; }
+.animate-slide-in    { animation: slide-in 0.18s ease forwards; }
+.animate-spin        { animation: spin 0.8s linear infinite; }
+.animate-progress-glow { animation: progress-pulse 2s ease infinite; }
 
-/* Legacy animation helpers kept for backward compat */
-.animate-fade-in       { animation: fade-in 0.2s ease-out; }
-.animate-slide-in      { animation: slide-in 0.2s ease forwards; }
-.animate-progress-glow { animation: progress-glow 2s ease infinite; }
+/* ── Utility: truncate single line ──────────────────────────────────────── */
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

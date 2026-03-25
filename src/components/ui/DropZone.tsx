@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useDragDrop } from "../../hooks/useDragDrop";
+import { IcnUpload } from "./Icons";
 
 interface DropZoneProps {
   onFilesDropped: (files: string[]) => void;
@@ -10,10 +11,8 @@ interface DropZoneProps {
   label?: string;
   disabled?: boolean;
   hasFile?: boolean;
-  /** Override the inner layout classes (default: centered column with padding) */
   className?: string;
   children?: React.ReactNode;
-  /** Comma-separated list of formats to show below the upload hint */
   formats?: string;
 }
 
@@ -61,14 +60,14 @@ export function DropZone({
     <div
       onClick={!disabled ? handleClick : undefined}
       style={{
-        border: `1.5px dashed ${isHighlighted ? "var(--accent)" : "var(--border)"}`,
-        borderRadius: "10px",
-        background: isHighlighted ? "var(--accent-dim)" : "var(--surface)",
+        border: `2px dashed ${isHighlighted ? "var(--accent)" : "var(--border2)"}`,
+        borderRadius: "12px",
+        background: isHighlighted ? "var(--accent-dim)" : "var(--surface2)",
         padding: "32px 24px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: "10px",
+        gap: "12px",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.5 : 1,
         transition: "border-color 0.15s, background 0.15s",
@@ -82,50 +81,43 @@ export function DropZone({
       }}
       onMouseLeave={(e) => {
         if (!disabled && !isHighlighted) {
-          (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)";
-          (e.currentTarget as HTMLDivElement).style.background = "var(--surface)";
+          (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border2)";
+          (e.currentTarget as HTMLDivElement).style.background = "var(--surface2)";
         }
       }}
     >
       {children ?? (
         <>
-          {/* Plus icon */}
           <div
             style={{
-              width: "48px",
-              height: "48px",
-              borderRadius: "10px",
+              width: "56px",
+              height: "56px",
+              borderRadius: "14px",
               background: "var(--accent-dim)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "22px",
               color: "var(--accent)",
-              fontWeight: 200,
               flexShrink: 0,
             }}
           >
-            +
+            <IcnUpload size={28} strokeWidth={1.5} />
           </div>
 
-          <p style={{ fontSize: "13px", fontWeight: 500, color: "var(--text)" }}>
-            {label ?? t("dropzone.label")}
-          </p>
-          <p style={{ fontSize: "12px", color: "var(--muted)" }}>
-            {t("dropzone.or")}{" "}
-            <span style={{ color: "var(--accent)", textDecoration: "underline" }}>
-              {t("dropzone.browse")}
-            </span>
-          </p>
+          <div style={{ textAlign: "center" }}>
+            <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)", marginBottom: "4px" }}>
+              {label ?? t("dropzone.label")}
+            </p>
+            <p style={{ fontSize: "12px", color: "var(--muted)" }}>
+              {t("dropzone.or")}{" "}
+              <span style={{ color: "var(--accent)", textDecoration: "underline", fontWeight: 500 }}>
+                {t("dropzone.browse")}
+              </span>
+            </p>
+          </div>
+
           {formats && (
-            <p
-              style={{
-                fontSize: "10px",
-                color: "var(--muted)",
-                letterSpacing: "0.06em",
-                textAlign: "center",
-              }}
-            >
+            <p style={{ fontSize: "10px", color: "var(--muted)", letterSpacing: "0.06em", textAlign: "center" }}>
               {formats}
             </p>
           )}

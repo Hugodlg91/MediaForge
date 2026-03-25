@@ -1,4 +1,11 @@
-import { useEffect, useState, useRef } from "react";
+import { writeFileSync } from 'fs';
+import { resolve } from 'path';
+
+const root = process.cwd();
+const w = (rel, content) => writeFileSync(resolve(root, rel), content, 'utf8');
+
+// ─── SettingsPage.tsx ─────────────────────────────────────────────────────────
+w('src/components/Settings/SettingsPage.tsx', `import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { getVersion } from "@tauri-apps/api/app";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -303,3 +310,6 @@ export function SettingsPage() {
     </div>
   );
 }
+`);
+
+console.log('✅ SettingsPage written');

@@ -1,4 +1,11 @@
-import { useState, useCallback } from "react";
+import { writeFileSync } from 'fs';
+import { resolve } from 'path';
+
+const root = process.cwd();
+const w = (rel, content) => writeFileSync(resolve(root, rel), content, 'utf8');
+
+// ─── VideoConverter.tsx ───────────────────────────────────────────────────────
+w('src/components/Converter/VideoConverter.tsx', `import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import {
@@ -14,26 +21,34 @@ import { DropZone } from "../ui/DropZone";
 import { ConversionResult } from "../ui/ConversionResult";
 import { IcnCheck, IcnX, IcnFolder, IcnChevronRight } from "../ui/Icons";
 
-const AUDIO_FORMATS = ["mp3", "flac", "wav", "ogg", "aac", "m4a"] as const;
-type AudioFormat = (typeof AUDIO_FORMATS)[number];
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const VIDEO_FORMATS = ["mp4", "mkv", "avi", "mov", "webm"] as const;
+type VideoFormat = (typeof VIDEO_FORMATS)[number];
+
+const RESOLUTIONS = [
+  { label: "Original", value: undefined },
+  { label: "720p",  value: "1280:720" },
+  { label: "1080p", value: "1920:1080" },
+  { label: "4K",    value: "3840:2160" },
+];
+
+const CODECS = [
+  { label: "Auto",  value: undefined },
+  { label: "H.264", value: "h264" },
+  { label: "H.265", value: "h265" },
+  { label: "VP9",   value: "vp9" },
+];
 
 const BITRATES = [
-  { label: "Auto",     value: undefined },
-  { label: "128 kbps", value: "128k" },
-  { label: "192 kbps", value: "192k" },
-  { label: "256 kbps", value: "256k" },
-  { label: "320 kbps", value: "320k" },
+  { label: "Auto",    value: undefined },
+  { label: "1 Mbps",  value: "1M" },
+  { label: "2 Mbps",  value: "2M" },
+  { label: "5 Mbps",  value: "5M" },
+  { label: "10 Mbps", value: "10M" },
 ];
 
-const SAMPLE_RATES = [
-  { label: "Original", value: undefined },
-  { label: "22050 Hz", value: "22050" },
-  { label: "44100 Hz", value: "44100" },
-  { label: "48000 Hz", value: "48000" },
-  { label: "96000 Hz", value: "96000" },
-];
-
-const ACCEPTED_EXTENSIONS = [...AUDIO_FORMATS, "mp4", "mkv", "avi", "mov", "webm"];
+// ─── Batch file list ──────────────────────────────────────────────────────────
 
 function MediaBatchFileList({
   files,
@@ -49,7 +64,7 @@ function MediaBatchFileList({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "200px", overflowY: "auto" }}>
       {files.map((f) => {
-        const name = f.split(/[\\/]/).pop() ?? f;
+        const name = f.split(/[\\\\/]/).pop() ?? f;
         const result = results?.find((r) => r.input === f);
         return (
           <div
@@ -64,6 +79,7 @@ function MediaBatchFileList({
               padding: "8px 12px",
             }}
           >
+            {/* Status / remove */}
             <div style={{ flexShrink: 0, width: "18px", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {result ? (
                 result.success ? (
@@ -96,13 +112,15 @@ function MediaBatchFileList({
   );
 }
 
-export function AudioConverter() {
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export function VideoConverter() {
   const { t } = useTranslation();
   const { settings } = useSettingsContext();
   const {
     progress, status, error, speed, currentTime,
     results, batchIndex, batchTotal, currentFile,
-    convertAudio, convertAudioBatch, getMediaInfo, cancel, reset,
+    convertVideo, convertVideoBatch, getMediaInfo, cancel, reset,
   } = useConversion();
 
   const [mode, setMode] = useState<"single" | "batch">("single");
@@ -111,12 +129,12 @@ export function AudioConverter() {
   const [outputPath, setOutputPath] = useState<string | null>(null);
   const [batchFiles, setBatchFiles] = useState<string[]>([]);
 
-  const [outputFormat, setOutputFormat] = useState<AudioFormat>(
-    (settings.default_audio_format as AudioFormat) ?? "mp3"
+  const [outputFormat, setOutputFormat] = useState<VideoFormat>(
+    (settings.default_video_format as VideoFormat) ?? "mp4"
   );
+  const [resolution, setResolution] = useState<string | undefined>(undefined);
+  const [codec, setCodec] = useState<string | undefined>(undefined);
   const [bitrate, setBitrate] = useState<string | undefined>(undefined);
-  const [sampleRate, setSampleRate] = useState<string | undefined>(undefined);
-  const [normalize, setNormalize] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const isConverting = status === "converting";
@@ -135,10 +153,10 @@ export function AudioConverter() {
 
   const handleConvert = useCallback(async () => {
     if (!inputPath || !outputPath) return;
-    await convertAudio({ input_path: inputPath, output_path: outputPath, bitrate, sample_rate: sampleRate, normalize });
-  }, [inputPath, outputPath, bitrate, sampleRate, normalize, convertAudio]);
+    await convertVideo({ input_path: inputPath, output_path: outputPath, resolution, codec, bitrate });
+  }, [inputPath, outputPath, resolution, codec, bitrate, convertVideo]);
 
-  const handleFormatChange = (fmt: AudioFormat) => {
+  const handleFormatChange = (fmt: VideoFormat) => {
     setOutputFormat(fmt);
     if (inputPath) setOutputPath(buildOutputPath(inputPath, fmt, settings.output_dir ?? undefined));
   };
@@ -157,12 +175,12 @@ export function AudioConverter() {
       input_path: p,
       output_path: buildOutputPath(p, outputFormat, settings.output_dir ?? undefined),
     }));
-    await convertAudioBatch({ files, bitrate, sample_rate: sampleRate, normalize });
-  }, [batchFiles, outputFormat, settings.output_dir, bitrate, sampleRate, normalize, convertAudioBatch]);
+    await convertVideoBatch({ files, resolution, codec, bitrate });
+  }, [batchFiles, outputFormat, settings.output_dir, resolution, codec, bitrate, convertVideoBatch]);
 
   const batchProgressLabel =
     batchTotal > 0
-      ? `${t("batch.progress", { index: Math.min(batchIndex + 1, batchTotal), total: batchTotal })}${currentFile ? ` — ${currentFile}` : ""}`
+      ? \`\${t("batch.progress", { index: Math.min(batchIndex + 1, batchTotal), total: batchTotal })}\${currentFile ? \` — \${currentFile}\` : ""}\`
       : undefined;
 
   const selectCls: React.CSSProperties = {
@@ -179,20 +197,37 @@ export function AudioConverter() {
 
   const optionsPanel = (
     <>
+      {/* Format pills */}
       <div className="card" style={{ padding: "14px 16px" }}>
         <p className="section-label">{t("converter.output_format")}</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-          {AUDIO_FORMATS.map((f) => (
-            <button key={f} onClick={() => handleFormatChange(f)} className={`fmt-pill ${outputFormat === f ? "active" : ""}`}>
+          {VIDEO_FORMATS.map((f) => (
+            <button
+              key={f}
+              onClick={() => handleFormatChange(f)}
+              className={\`fmt-pill \${outputFormat === f ? "active" : ""}\`}
+            >
               {f.toUpperCase()}
             </button>
           ))}
         </div>
       </div>
 
+      {/* Advanced toggle */}
       <button
         onClick={() => setShowAdvanced((v) => !v)}
-        style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--accent)", fontSize: "12px", background: "none", border: "none", cursor: "pointer", fontWeight: 500, padding: 0 }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          color: "var(--accent)",
+          fontSize: "12px",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontWeight: 500,
+          padding: 0,
+        }}
       >
         <span style={{ display: "flex", transition: "transform 0.15s", transform: showAdvanced ? "rotate(90deg)" : "rotate(0)" }}>
           <IcnChevronRight size={12} />
@@ -202,43 +237,19 @@ export function AudioConverter() {
 
       {showAdvanced && (
         <div className="card" style={{ padding: "14px 16px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <label style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{t("converter.bitrate")}</label>
-              <select value={bitrate ?? ""} onChange={(e) => setBitrate(e.target.value || undefined)} style={selectCls}>
-                {BITRATES.map((b) => <option key={b.label} value={b.value ?? ""}>{b.label}</option>)}
-              </select>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <label style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{t("converter.sampleRate")}</label>
-              <select value={sampleRate ?? ""} onChange={(e) => setSampleRate(e.target.value || undefined)} style={selectCls}>
-                {SAMPLE_RATES.map((s) => <option key={s.label} value={s.value ?? ""}>{s.label}</option>)}
-              </select>
-            </div>
-          </div>
-          {/* Normalize toggle */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "12px" }}>
-            <button
-              role="checkbox"
-              aria-checked={normalize}
-              onClick={() => setNormalize((v) => !v)}
-              style={{
-                width: "36px", height: "20px", borderRadius: "10px",
-                background: normalize ? "var(--accent)" : "var(--border2)",
-                border: "none", cursor: "pointer", transition: "background 0.15s",
-                position: "relative", flexShrink: 0,
-              }}
-            >
-              <span style={{
-                position: "absolute", top: "3px",
-                left: normalize ? "18px" : "3px",
-                width: "14px", height: "14px", borderRadius: "50%", background: "#fff",
-                transition: "left 0.15s",
-              }} />
-            </button>
-            <span style={{ fontSize: "12px", color: "var(--text-sub)", cursor: "pointer" }} onClick={() => setNormalize((v) => !v)}>
-              {t("converter.normalize")}
-            </span>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+            {[
+              { label: t("converter.resolution"), value: resolution, setter: setResolution, opts: RESOLUTIONS },
+              { label: t("converter.codec"),      value: codec,      setter: setCodec,      opts: CODECS },
+              { label: t("converter.bitrate"),    value: bitrate,    setter: setBitrate,    opts: BITRATES },
+            ].map(({ label, value, setter, opts }) => (
+              <div key={label} style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                <label style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{label}</label>
+                <select value={value ?? ""} onChange={(e) => setter(e.target.value || undefined)} style={selectCls}>
+                  {opts.map((o) => <option key={o.label} value={o.value ?? ""}>{o.label}</option>)}
+                </select>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -247,13 +258,15 @@ export function AudioConverter() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "24px", height: "100%", overflowY: "auto" }}>
+      {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h2 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text)", lineHeight: 1.2 }}>{t("nav.audio")}</h2>
+          <h2 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text)", lineHeight: 1.2 }}>{t("nav.video")}</h2>
           <p style={{ fontSize: "11px", color: "var(--muted)", marginTop: "3px", letterSpacing: "0.04em" }}>
             {t("converter.localOnly") || "100% local"}
           </p>
         </div>
+        {/* Segmented control */}
         <div className="seg-ctrl">
           <button className={mode === "single" ? "active" : ""} onClick={() => { setMode("single"); reset(); }}>
             {t("batch.single")}
@@ -264,26 +277,27 @@ export function AudioConverter() {
         </div>
       </div>
 
+      {/* ── Single mode ──────────────────────────────────────────────────── */}
       {mode === "single" && (
         <>
           <DropZone
             onFilesDropped={(files) => { const p = files[0]; if (p) handleFileSelected(p); }}
-            allowedExtensions={ACCEPTED_EXTENSIONS}
+            allowedExtensions={[...VIDEO_FORMATS]}
             disabled={isConverting}
             hasFile={!!inputPath}
           >
             {inputPath ? (
               <>
-                <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: "var(--accent-dim)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)", fontWeight: 700, fontSize: "10px", letterSpacing: "0.06em", flexShrink: 0 }}>AUD</div>
+                <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: "var(--accent-dim)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)", fontWeight: 700, fontSize: "10px", letterSpacing: "0.06em", flexShrink: 0 }}>VID</div>
                 <div style={{ textAlign: "center" }}>
                   <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)", marginBottom: "6px" }}>
-                    {inputPath.split(/[\\/]/).pop()}
+                    {inputPath.split(/[\\\\/]/).pop()}
                   </p>
                   {mediaInfo && (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", fontSize: "11px", color: "var(--text-sub)" }}>
                       {mediaInfo.duration > 0 && <span>{formatDuration(mediaInfo.duration)}</span>}
-                      {mediaInfo.audio_codec && <span>{mediaInfo.audio_codec}</span>}
-                      {mediaInfo.bitrate && <span>{mediaInfo.bitrate}</span>}
+                      {mediaInfo.width && mediaInfo.height && <span>{mediaInfo.width}×{mediaInfo.height}</span>}
+                      {mediaInfo.video_codec && <span>{mediaInfo.video_codec}</span>}
                       <span>{formatFileSize(mediaInfo.file_size)}</span>
                     </div>
                   )}
@@ -309,14 +323,15 @@ export function AudioConverter() {
         </>
       )}
 
+      {/* ── Batch mode ──────────────────────────────────────────────────── */}
       {mode === "batch" && (
         <>
           {!isConverting && !isDone && (
             <DropZone
               onFilesDropped={handleBatchFilesAdded}
-              allowedExtensions={ACCEPTED_EXTENSIONS}
+              allowedExtensions={[...VIDEO_FORMATS]}
               multiple={true}
-              formats={AUDIO_FORMATS.join(" · ").toUpperCase()}
+              formats={VIDEO_FORMATS.join(" · ").toUpperCase()}
             />
           )}
 
@@ -379,3 +394,6 @@ export function AudioConverter() {
     </div>
   );
 }
+`);
+
+console.log('✅ VideoConverter written');

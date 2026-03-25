@@ -34,7 +34,8 @@
     "cancel": "Cancel",
     "done": "Conversion complete!",
     "error": "Error",
-    "convert_another": "Convert another file"
+    "convert_another": "Convert another file",
+    "localOnly": "100% local"
   },
   "status": {
     "ready": "Ready",

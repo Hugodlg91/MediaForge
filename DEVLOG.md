@@ -140,6 +140,20 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 
 ---
 
+### ✅ Étape 12 — Refonte visuelle complète (UI Refactor) (TERMINÉE)
+- [x] **Système de design** : tokens CSS sémantiques enrichis — `--surface3`, `--border2`, `--text-sub`, `--shadow-sm` ajoutés ; vert succès `#10B981` (`--success`) ; hiérarchie typographique 9/10/11/12/13/14/24px
+- [x] **SVG Icons** : nouveau composant `src/components/ui/Icons.tsx` — IcnImage, IcnVideo, IcnAudio, IcnHistory, IcnSettings, IcnUpload, IcnCheck, IcnX, IcnChevronDown, IcnChevronRight, IcnFolder, IcnRefresh (stroke-based, 24×24 viewBox, props size/color/strokeWidth)
+- [x] **Sidebar** : icônes SVG au-dessus du label abrégé (3 lettres) ; boutons 52px full-width ; état actif = `--accent-dim` bg + barre verticale 3×24px à gauche ; hover identique sans la barre
+- [x] **DropZone** : `IcnUpload` dans une boîte 56×56px `--accent-dim` ; bordure 2px dashed `--border2` → `--accent` au hover/drag ; bg `--surface2` → `--accent-dim`
+- [x] **ConversionResult** : card success avec `rgba(16,185,129,0.06)` bg + `IcnCheck` vert dans cercle ; `.btn-ghost` ouvrir dossier + `.btn-primary` nouvelle conversion
+- [x] **ProgressBar** : wrapper `.card` ; barre dégradée `--accent → --accent-hover` ; `.btn-ghost` annuler
+- [x] **VideoConverter / AudioConverter** : `.seg-ctrl` mode toggle ; batch list avec `IcnCheck`/`IcnX`/`IcnFolder` ; `.btn-primary`/`.btn-ghost` ; `.card`/`.fmt-pill` options ; `IcnChevronRight` animé pour advanced toggle
+- [x] **History** : grid `auto 1fr auto auto` ; badge type 32×32px avec IcnImage/Video/Audio coloré ; `IcnCheck` vert inline ; `.btn-ghost` actions ; `box-shadow: var(--shadow-sm)`
+- [x] **SettingsPage** : `PillSelect` avec `IcnChevronDown` SVG (rotation 180° à l'ouverture) ; `ThemeToggle` via `.seg-ctrl` ; `SectionCard` avec `--shadow-sm` ; `IcnFolder` + `IcnX` dans output dir ; `IcnCheck` dans badge "100% local"
+- [x] **Classes utilitaires** : `.btn-primary`, `.btn-ghost`, `.btn-danger`, `.seg-ctrl`, `.card`, `.fmt-pill`, `.section-label` définies dans `index.css`, utilisées partout
+- [x] **Police offline** : stack système `ui-sans-serif, system-ui, -apple-system, sans-serif` (suppression Google Fonts CDN, respect contrainte 100% offline)
+- [x] `npm run build` : **0 erreur TypeScript** (96 modules, 343 kB JS)
+
 ### ✅ Étape 11 — Migration data-theme & refonte UI complète (TERMINÉE)
 - [x] **Migration thème** : `applyTheme()` dans `useSettings.ts` → `setAttribute("data-theme", theme)` (replaces `classList.add("dark")`)
 - [x] **Script anti-flash** : `index.html` set `data-theme` sur `<html>` avant le premier render React
