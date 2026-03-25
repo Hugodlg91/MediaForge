@@ -13,6 +13,7 @@ import { useSettingsContext } from "../../context/SettingsContext";
 import { ProgressBar } from "./ProgressBar";
 import { DropZone } from "../ui/DropZone";
 import { ConversionResult } from "../ui/ConversionResult";
+import { IcnCheck, IcnX, IcnFolder, IcnChevronRight } from "../ui/Icons";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -20,10 +21,54 @@ const IMAGE_FORMATS = ["png", "jpg", "webp", "bmp", "tiff"] as const;
 type ImageFormat = (typeof IMAGE_FORMATS)[number];
 
 const QUALITY_FORMATS: ImageFormat[] = ["jpg", "webp"];
-
 const ACCEPTED_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "bmp", "tiff", "tif"];
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── Toggle switch ────────────────────────────────────────────────────────────
+
+function ToggleSwitch({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <button
+        role="checkbox"
+        aria-checked={value}
+        onClick={() => onChange(!value)}
+        style={{
+          width: "36px",
+          height: "20px",
+          borderRadius: "10px",
+          background: value ? "var(--accent)" : "var(--border2)",
+          border: "none",
+          cursor: "pointer",
+          position: "relative",
+          transition: "background 0.15s",
+          flexShrink: 0,
+          padding: 0,
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: "2px",
+            left: value ? "18px" : "2px",
+            width: "16px",
+            height: "16px",
+            borderRadius: "50%",
+            background: "#fff",
+            transition: "left 0.15s",
+          }}
+        />
+      </button>
+      <label
+        onClick={() => onChange(!value)}
+        style={{ fontSize: "12px", color: "var(--text-sub)", cursor: "pointer", fontWeight: 500 }}
+      >
+        {label}
+      </label>
+    </div>
+  );
+}
+
+// ─── Batch file list ──────────────────────────────────────────────────────────
 
 function BatchFileList({
   files,
@@ -32,43 +77,53 @@ function BatchFileList({
 }: {
   files: string[];
   results: BatchResult[] | null;
-  onRemove: (path: string) => void;
+  onRemove?: (path: string) => void;
 }) {
   const { t } = useTranslation();
   if (files.length === 0) return null;
-
   return (
-    <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto">
+    <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "200px", overflowY: "auto" }}>
       {files.map((f) => {
         const name = f.split(/[\\/]/).pop() ?? f;
         const result = results?.find((r) => r.input === f);
         return (
           <div
             key={f}
-            className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2 gap-2"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              background: "var(--surface2)",
+              border: "1px solid var(--border)",
+              borderRadius: "8px",
+              padding: "8px 12px",
+            }}
           >
-            <span className="text-xs text-gray-300 truncate flex-1">{name}</span>
-            <div className="flex items-center gap-2 shrink-0">
+            <div style={{ flexShrink: 0, width: "18px", display: "flex", alignItems: "center", justifyContent: "center" }}>
               {result ? (
                 result.success ? (
-                  <span className="text-green-400 text-xs">✓</span>
+                  <span style={{ color: "var(--success)" }}><IcnCheck size={15} strokeWidth={2.5} /></span>
                 ) : (
-                  <span
-                    className="text-red-400 text-xs"
-                    title={result.error ?? t("converter.error")}
-                  >
-                    ✕
+                  <span style={{ color: "var(--error)" }} title={result.error ?? t("converter.error")}>
+                    <IcnX size={14} strokeWidth={2.5} />
                   </span>
                 )
-              ) : (
+              ) : onRemove ? (
                 <button
                   onClick={() => onRemove(f)}
-                  className="text-gray-500 hover:text-red-400 text-xs transition-colors"
+                  style={{ color: "var(--muted)", background: "none", border: "none", cursor: "pointer", display: "flex", padding: 0 }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--error)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--muted)"; }}
                 >
-                  ✕
+                  <IcnX size={14} strokeWidth={2} />
                 </button>
+              ) : (
+                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--border2)", display: "inline-block" }} />
               )}
             </div>
+            <span style={{ fontSize: "12px", color: "var(--text-sub)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {name}
+            </span>
           </div>
         );
       })}
@@ -82,37 +137,22 @@ export function ImageConverter() {
   const { t } = useTranslation();
   const { settings } = useSettingsContext();
   const {
-    progress,
-    status,
-    error,
-    currentFile,
-    results,
-    convertImage,
-    convertImagesBatch,
-    getImageInfo,
-    reset,
+    progress, status, error, currentFile, results,
+    convertImage, convertImagesBatch, getImageInfo, reset,
   } = useImageConversion();
 
-  // Mode
   const [mode, setMode] = useState<"single" | "batch">("single");
-
-  // Single mode
   const [inputPath, setInputPath] = useState<string | null>(null);
   const [imageInfo, setImageInfo] = useState<ImageInfo | null>(null);
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [outputPath, setOutputPath] = useState<string | null>(null);
-
-  // Batch mode
   const [batchFiles, setBatchFiles] = useState<string[]>([]);
 
-  // Shared options
   const [outputFormat, setOutputFormat] = useState<ImageFormat>(
     (settings.default_image_format as ImageFormat) ?? "png"
   );
   const [quality, setQuality] = useState(85);
   const [showAdvanced, setShowAdvanced] = useState(false);
-
-  // Resize
   const [resizeEnabled, setResizeEnabled] = useState(false);
   const [resizeWidth, setResizeWidth] = useState("");
   const [resizeHeight, setResizeHeight] = useState("");
@@ -121,7 +161,7 @@ export function ImageConverter() {
   const isConverting = status === "converting";
   const isDone = status === "done";
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────────────────
 
   const getResizeOptions = (): ResizeOptions | undefined => {
     if (!resizeEnabled) return undefined;
@@ -145,18 +185,13 @@ export function ImageConverter() {
         setKeepAspectRatio(false);
         break;
       case "720p":
-        setResizeWidth("");
-        setResizeHeight("720");
-        setKeepAspectRatio(true);
+        setResizeWidth(""); setResizeHeight("720"); setKeepAspectRatio(true);
         break;
       case "1080p":
-        setResizeWidth("");
-        setResizeHeight("1080");
-        setKeepAspectRatio(true);
+        setResizeWidth(""); setResizeHeight("1080"); setKeepAspectRatio(true);
         break;
       default:
-        setResizeWidth("");
-        setResizeHeight("");
+        setResizeWidth(""); setResizeHeight("");
     }
     setResizeEnabled(true);
   };
@@ -166,7 +201,7 @@ export function ImageConverter() {
     if (inputPath) setOutputPath(buildOutputPath(inputPath, fmt, settings.output_dir ?? undefined));
   };
 
-  // ── File selection ─────────────────────────────────────────────────────────
+  // ── File selection ────────────────────────────────────────────────────────
 
   const handleSingleFileSelected = useCallback(
     async (path: string) => {
@@ -175,29 +210,20 @@ export function ImageConverter() {
       setPreviewSrc(convertFileSrc(path));
       reset();
       setImageInfo(null);
-      try {
-        const info = await getImageInfo(path);
-        setImageInfo(info);
-      } catch {
-        // non-blocking
-      }
+      try { const info = await getImageInfo(path); setImageInfo(info); } catch { /* non-blocking */ }
     },
     [outputFormat, settings.output_dir, getImageInfo, reset]
   );
 
   const handleBatchFilesAdded = useCallback(
     (paths: string[]) => {
-      setBatchFiles((prev) => {
-        const set = new Set(prev);
-        paths.forEach((p) => set.add(p));
-        return Array.from(set);
-      });
+      setBatchFiles((prev) => { const s = new Set(prev); paths.forEach((p) => s.add(p)); return Array.from(s); });
       reset();
     },
     [reset]
   );
 
-  // ── Conversion ─────────────────────────────────────────────────────────────
+  // ── Conversion ────────────────────────────────────────────────────────────
 
   const handleConvertSingle = useCallback(async () => {
     if (!inputPath || !outputPath) return;
@@ -226,265 +252,219 @@ export function ImageConverter() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [batchFiles, outputFormat, quality, resizeEnabled, resizeWidth, resizeHeight, keepAspectRatio, convertImagesBatch]);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const inputStyle: React.CSSProperties = {
+    background: "var(--surface2)",
+    border: "1px solid var(--border2)",
+    color: "var(--text)",
+    fontSize: "12px",
+    borderRadius: "8px",
+    padding: "7px 10px",
+    outline: "none",
+    width: "88px",
+  };
+
+  const optionsPanel = (
+    <>
+      {/* Format pills */}
+      <div className="card" style={{ padding: "14px 16px" }}>
+        <p className="section-label">{t("converter.output_format")}</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+          {IMAGE_FORMATS.map((f) => (
+            <button
+              key={f}
+              onClick={() => handleFormatChange(f)}
+              className={`fmt-pill ${outputFormat === f ? "active" : ""}`}
+            >
+              {f.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Advanced toggle */}
+      <button
+        onClick={() => setShowAdvanced((v) => !v)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
+          color: "var(--accent)",
+          fontSize: "12px",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontWeight: 500,
+          padding: 0,
+        }}
+      >
+        <span style={{ display: "flex", transition: "transform 0.15s", transform: showAdvanced ? "rotate(90deg)" : "rotate(0)" }}>
+          <IcnChevronRight size={12} />
+        </span>
+        {t("converter.advancedOptions")}
+      </button>
+
+      {showAdvanced && (
+        <div className="card" style={{ padding: "14px 16px", gap: "16px" }}>
+          {/* Quality slider */}
+          {QUALITY_FORMATS.includes(outputFormat) && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <label style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  {t("image.quality")}
+                </label>
+                <span style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 600 }}>{quality}%</span>
+              </div>
+              <input
+                type="range" min={1} max={100} value={quality}
+                onChange={(e) => setQuality(Number(e.target.value))}
+                style={{ width: "100%", accentColor: "var(--accent)" }}
+              />
+            </div>
+          )}
+
+          {/* Resize */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <ToggleSwitch
+              value={resizeEnabled}
+              onChange={setResizeEnabled}
+              label={t("image.resize")}
+            />
+            {resizeEnabled && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", paddingLeft: "46px" }}>
+                {/* Presets */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  {["Original", "50%", "25%", "720p", "1080p"].map((p) => (
+                    <button
+                      key={p}
+                      onClick={() =>
+                        p === "Original"
+                          ? (setResizeWidth(""), setResizeHeight(""), setResizeEnabled(false))
+                          : applyPreset(p)
+                      }
+                      className="fmt-pill"
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+                {/* W × H inputs */}
+                <div style={{ display: "flex", alignItems: "flex-end", gap: "10px", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    <label style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                      {t("image.width")}
+                    </label>
+                    <input
+                      type="number" min={1} value={resizeWidth}
+                      onChange={(e) => setResizeWidth(e.target.value)}
+                      placeholder="px"
+                      style={inputStyle}
+                    />
+                  </div>
+                  <span style={{ color: "var(--muted)", fontSize: "14px", paddingBottom: "8px" }}>×</span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                    <label style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                      {t("image.height")}
+                    </label>
+                    <input
+                      type="number" min={1} value={resizeHeight}
+                      onChange={(e) => setResizeHeight(e.target.value)}
+                      placeholder="px"
+                      style={inputStyle}
+                    />
+                  </div>
+                </div>
+                <ToggleSwitch
+                  value={keepAspectRatio}
+                  onChange={setKeepAspectRatio}
+                  label={t("image.keepAspectRatio")}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
 
   return (
-    <div className="flex flex-col gap-5 p-6 h-full overflow-y-auto">
-      {/* Header + mode toggle */}
-      <div className="flex items-center justify-between">
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "24px", height: "100%", overflowY: "auto" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h2
-            style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.02em", color: "var(--text)" }}
-          >
-            {t("nav.image")}
-          </h2>
-          <p style={{ fontSize: "11px", color: "var(--muted)", letterSpacing: "0.04em", marginTop: "2px" }}>100% LOCAL — AUCUNE DONNEE ENVOYEE</p>
+          <h2 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text)", lineHeight: 1.2 }}>{t("nav.image")}</h2>
+          <p style={{ fontSize: "11px", color: "var(--muted)", marginTop: "3px", letterSpacing: "0.04em" }}>
+            {t("converter.localOnly") || "100% local"}
+          </p>
         </div>
-        <div className="flex bg-gray-800 border border-gray-700 rounded-lg p-0.5 text-xs">
-          <button
-            onClick={() => { setMode("single"); reset(); }}
-            className={`px-3 py-1.5 rounded-md transition-colors tracking-wider ${mode === "single" ? "bg-indigo-950 text-indigo-400" : "text-gray-500 hover:text-gray-300"}`}
-          >
-            {t("image.singleMode").toUpperCase()}
+        <div className="seg-ctrl">
+          <button className={mode === "single" ? "active" : ""} onClick={() => { setMode("single"); reset(); }}>
+            {t("batch.single")}
           </button>
-          <button
-            onClick={() => { setMode("batch"); reset(); }}
-            className={`px-3 py-1.5 rounded-md transition-colors tracking-wider ${mode === "batch" ? "bg-indigo-950 text-indigo-400" : "text-gray-500 hover:text-gray-300"}`}
-          >
-            {t("image.batchMode").toUpperCase()}
+          <button className={mode === "batch" ? "active" : ""} onClick={() => { setMode("batch"); reset(); }}>
+            {t("batch.toggle")}
           </button>
         </div>
       </div>
 
-      {/* ── Single mode ──────────────────────────────────────────────────────── */}
+      {/* ── Single mode ──────────────────────────────────────────────────── */}
       {mode === "single" && (
         <>
           <DropZone
-            onFilesDropped={(files) => {
-              const p = files[0];
-              if (p) handleSingleFileSelected(p);
-            }}
+            onFilesDropped={(files) => { const p = files[0]; if (p) handleSingleFileSelected(p); }}
             allowedExtensions={ACCEPTED_EXTENSIONS}
             disabled={isConverting}
             hasFile={!!inputPath}
-            className="flex gap-5 p-5"
           >
-            {/* Preview thumbnail */}
-            {previewSrc ? (
-              <div className="shrink-0 w-28 h-28 rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center">
-                <img
-                  src={previewSrc}
-                  alt="preview"
-                  className="max-w-full max-h-full object-contain"
-                />
-              </div>
-            ) : (
-              <div style={{ width:"48px",height:"48px",borderRadius:"8px",background:"var(--accent-dim)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"9px",fontWeight:700,color:"var(--accent)",letterSpacing:"0.06em",flexShrink:0 }}>IMG</div>
-            )}
-
-            {/* Info */}
-            <div className="flex flex-col justify-center gap-1.5 min-w-0">
-              {inputPath ? (
-                <>
-                  <p className="text-white text-sm font-medium truncate">
+            {inputPath ? (
+              <>
+                {previewSrc ? (
+                  <div style={{ width: "64px", height: "64px", borderRadius: "10px", overflow: "hidden", background: "var(--surface2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <img src={previewSrc} alt="preview" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                  </div>
+                ) : (
+                  <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: "var(--accent-dim)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)", fontWeight: 700, fontSize: "10px", letterSpacing: "0.06em", flexShrink: 0 }}>IMG</div>
+                )}
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)", marginBottom: "6px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "260px" }}>
                     {inputPath.split(/[\\/]/).pop()}
                   </p>
                   {imageInfo && (
-                    <div className="flex flex-col gap-0.5 text-xs text-gray-400">
-                      <span>{imageInfo.width} x {imageInfo.height} px</span>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", fontSize: "11px", color: "var(--text-sub)" }}>
+                      <span>{imageInfo.width} × {imageInfo.height} px</span>
                       <span>{imageInfo.format.toUpperCase()}</span>
                       <span>{formatFileSize(imageInfo.file_size)}</span>
                       {imageInfo.has_alpha && <span>{t("image.fileInfo.hasAlpha")}</span>}
                     </div>
                   )}
-                  {!isConverting && (
-                    <span className="text-xs text-indigo-400 mt-1">{t("dropzone.fileLoaded")}</span>
-                  )}
-                </>
-              ) : (
-                <>
-                  <p className="text-gray-300 text-sm font-medium">{t("dropzone.label")}</p>
-                  <p className="text-gray-500 text-xs">
-                    {t("converter.dropzone_sub", {
-                      formats: IMAGE_FORMATS.join(", ").toUpperCase(),
-                    })}
-                  </p>
-                </>
-              )}
-            </div>
+                </div>
+                {!isConverting && <span style={{ fontSize: "11px", color: "var(--accent)" }}>{t("dropzone.fileLoaded")}</span>}
+              </>
+            ) : undefined}
           </DropZone>
 
-          {/* Options (show only when file selected and not converting) */}
           {inputPath && !isConverting && !isDone && (
             <>
-              {/* Format pills */}
-              <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
-                <div className="text-[10px] text-gray-500 tracking-widest mb-3">
-                  {t("converter.output_format").toUpperCase()}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {IMAGE_FORMATS.map((f) => (
-                    <button
-                      key={f}
-                      onClick={() => handleFormatChange(f)}
-                      className={`px-3 py-1.5 rounded-md text-[11px] font-medium tracking-wider transition-all border ${
-                        outputFormat === f
-                          ? "border-indigo-600 bg-indigo-950 text-indigo-400"
-                          : "border-gray-700 text-gray-500 hover:border-indigo-600 hover:text-indigo-400"
-                      }`}
-                    >
-                      {f.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Advanced toggle */}
-              <button
-                onClick={() => setShowAdvanced((v) => !v)}
-                className="flex items-center gap-2 text-indigo-400 text-xs w-fit hover:text-indigo-300 transition-colors tracking-wider"
-              >
-                <span className={`transition-transform text-[8px] ${showAdvanced ? "rotate-90" : ""}`}>▶</span>
-                {t("converter.advancedOptions").toUpperCase()}
-              </button>
-
-              {showAdvanced && (
-                <div className="flex flex-col gap-4 bg-gray-900 rounded-xl p-4 border border-gray-700">
-                  {/* Quality slider */}
-                  {QUALITY_FORMATS.includes(outputFormat) && (
-                    <div className="flex flex-col gap-2">
-                      <div className="flex justify-between">
-                        <label className="text-gray-500 text-[10px] tracking-widest">
-                          {t("image.quality").toUpperCase()}
-                        </label>
-                        <span className="text-indigo-400 text-xs font-medium">{quality}%</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={1}
-                        max={100}
-                        value={quality}
-                        onChange={(e) => setQuality(Number(e.target.value))}
-                        className="w-full accent-indigo-600"
-                      />
-                    </div>
-                  )}
-
-                  {/* Resize */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-3">
-                      <button
-                        role="checkbox"
-                        aria-checked={resizeEnabled}
-                        onClick={() => setResizeEnabled((v) => !v)}
-                        className={`w-10 h-5 rounded-full transition-colors shrink-0 ${resizeEnabled ? "bg-indigo-600" : "bg-gray-700"}`}
-                      >
-                        <div
-                          className={`w-4 h-4 bg-white rounded-full mx-0.5 transition-transform ${resizeEnabled ? "translate-x-5" : "translate-x-0"}`}
-                        />
-                      </button>
-                      <label
-                        className="text-gray-300 text-xs cursor-pointer tracking-wider"
-                        onClick={() => setResizeEnabled((v) => !v)}
-                      >
-                        {t("image.resize").toUpperCase()}
-                      </label>
-                    </div>
-
-                    {resizeEnabled && (
-                      <div className="flex flex-col gap-3 ml-13 pl-1">
-                        <div className="flex flex-wrap gap-1.5">
-                          {["Original", "50%", "25%", "720p", "1080p"].map((p) => (
-                            <button
-                              key={p}
-                              onClick={() =>
-                                p === "Original"
-                                  ? (setResizeWidth(""), setResizeHeight(""), setResizeEnabled(false))
-                                  : applyPreset(p)
-                              }
-                              className="px-2.5 py-1 text-[11px] border border-gray-700 hover:border-indigo-600 hover:text-indigo-400 text-gray-500 rounded-md transition-colors tracking-wider"
-                            >
-                              {p}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <div className="flex flex-col gap-1">
-                            <label className="text-gray-500 text-[10px] tracking-widest">{t("image.width").toUpperCase()}</label>
-                            <input
-                              type="number" min={1} value={resizeWidth}
-                              onChange={(e) => setResizeWidth(e.target.value)}
-                              placeholder="px"
-                              className="w-24 bg-gray-800 border border-gray-700 text-gray-200 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-600"
-                            />
-                          </div>
-                          <span className="text-gray-600 mt-4">×</span>
-                          <div className="flex flex-col gap-1">
-                            <label className="text-gray-500 text-[10px] tracking-widest">{t("image.height").toUpperCase()}</label>
-                            <input
-                              type="number" min={1} value={resizeHeight}
-                              onChange={(e) => setResizeHeight(e.target.value)}
-                              placeholder="px"
-                              className="w-24 bg-gray-800 border border-gray-700 text-gray-200 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-600"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <button
-                            role="checkbox"
-                            aria-checked={keepAspectRatio}
-                            onClick={() => setKeepAspectRatio((v) => !v)}
-                            className={`w-10 h-5 rounded-full transition-colors shrink-0 ${keepAspectRatio ? "bg-indigo-600" : "bg-gray-700"}`}
-                          >
-                            <div
-                              className={`w-4 h-4 bg-white rounded-full mx-0.5 transition-transform ${keepAspectRatio ? "translate-x-5" : "translate-x-0"}`}
-                            />
-                          </button>
-                          <label
-                            className="text-gray-300 text-xs cursor-pointer tracking-wider"
-                            onClick={() => setKeepAspectRatio((v) => !v)}
-                          >
-                            {t("image.keepAspectRatio").toUpperCase()}
-                          </label>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={handleConvertSingle}
-                className="w-full py-3 bg-indigo-600 hover:opacity-90 active:scale-[0.99] text-white font-bold text-xs rounded-xl transition-all tracking-widest"
-                style={{ fontFamily: "'Syne', sans-serif" }}
-              >
-                {t("converter.convert").toUpperCase()}
+              {optionsPanel}
+              <button className="btn-primary" onClick={handleConvertSingle} style={{ width: "100%" }}>
+                {t("converter.convert")}
               </button>
             </>
           )}
 
-          {/* Progress */}
           {isConverting && <ProgressBar progress={progress} />}
 
-          {/* Done */}
           {isDone && outputPath && (
             <ConversionResult
               outputPath={outputPath}
-              onNewConversion={() => {
-                reset();
-                setInputPath(null);
-                setImageInfo(null);
-                setPreviewSrc(null);
-              }}
+              onNewConversion={() => { reset(); setInputPath(null); setImageInfo(null); setPreviewSrc(null); }}
             />
           )}
         </>
       )}
 
-      {/* ── Batch mode ───────────────────────────────────────────────────────── */}
+      {/* ── Batch mode ───────────────────────────────────────────────────── */}
       {mode === "batch" && (
         <>
-          {/* Drop zone for adding files */}
           {!isConverting && !isDone && (
             <DropZone
               onFilesDropped={handleBatchFilesAdded}
@@ -494,101 +474,49 @@ export function ImageConverter() {
             />
           )}
 
-          {/* File list */}
           <BatchFileList
             files={batchFiles}
             results={results}
             onRemove={(p) => setBatchFiles((prev) => prev.filter((f) => f !== p))}
           />
 
-          {/* Options */}
           {batchFiles.length > 0 && !isConverting && !isDone && (
             <>
-              <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
-                <div className="text-[10px] text-gray-500 tracking-widest mb-3">
-                  {t("converter.output_format").toUpperCase()}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {IMAGE_FORMATS.map((f) => (
-                    <button
-                      key={f}
-                      onClick={() => setOutputFormat(f)}
-                      className={`px-3 py-1.5 rounded-md text-[11px] font-medium tracking-wider transition-all border ${
-                        outputFormat === f
-                          ? "border-indigo-600 bg-indigo-950 text-indigo-400"
-                          : "border-gray-700 text-gray-500 hover:border-indigo-600 hover:text-indigo-400"
-                      }`}
-                    >
-                      {f.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {QUALITY_FORMATS.includes(outputFormat) && (
-                <div className="flex items-center gap-4">
-                  <label className="text-gray-500 text-[10px] tracking-widest shrink-0">
-                    {t("image.quality").toUpperCase()} : <span className="text-indigo-400">{quality}%</span>
-                  </label>
-                  <input
-                    type="range" min={1} max={100} value={quality}
-                    onChange={(e) => setQuality(Number(e.target.value))}
-                    className="flex-1 accent-indigo-600"
-                  />
-                </div>
-              )}
-
-              <button
-                onClick={handleConvertBatch}
-                className="w-full py-3 bg-indigo-600 hover:opacity-90 active:scale-[0.99] text-white font-bold text-xs rounded-xl transition-all tracking-widest"
-                style={{ fontFamily: "'Syne', sans-serif" }}
-              >
-                {t("converter.convert").toUpperCase()} ({batchFiles.length})
+              {optionsPanel}
+              <button className="btn-primary" onClick={handleConvertBatch} style={{ width: "100%" }}>
+                {t("converter.convert")} ({batchFiles.length})
               </button>
             </>
           )}
 
-          {/* Progress */}
-          {isConverting && (
-            <ProgressBar progress={progress} currentFile={currentFile ?? undefined} />
-          )}
+          {isConverting && <ProgressBar progress={progress} currentFile={currentFile ?? undefined} />}
 
-          {/* Batch done */}
           {isDone && results && (
-            <div className="flex flex-col gap-3 animate-fade-in">
-              <div className="flex items-center gap-4 text-sm">
-                <span className="text-green-400 font-medium">
-                  ✓ {t("image.batchSuccess", { count: results.filter((r) => r.success).length })}
+            <div className="animate-fade-in" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--success)", fontSize: "13px", fontWeight: 600 }}>
+                  <IcnCheck size={15} strokeWidth={2.5} />
+                  {t("image.batchSuccess", { count: results.filter((r) => r.success).length })}
                 </span>
                 {results.some((r) => !r.success) && (
-                  <span className="text-red-400">
-                    ✕ {t("image.batchErrors", { count: results.filter((r) => !r.success).length })}
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--error)", fontSize: "13px" }}>
+                    <IcnX size={14} strokeWidth={2.5} />
+                    {t("image.batchErrors", { count: results.filter((r) => !r.success).length })}
                   </span>
                 )}
               </div>
-              <BatchFileList files={batchFiles} results={results} onRemove={() => {}} />
-              <div className="flex gap-3 flex-wrap">
+              <BatchFileList files={batchFiles} results={results} />
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                 {results.some((r) => r.success) && (
-                  <button
-                    onClick={async () => {
-                      const first = results.find((r) => r.success);
-                      if (first) {
-                        await invoke("open_folder", {
-                          filePath: first.output,
-                        } as unknown as Record<string, unknown>);
-                      }
-                    }}
-                    className="px-4 py-2 border border-gray-700 hover:border-gray-600 text-gray-300 text-xs rounded-lg transition-colors tracking-wider"
-                  >
-                    {t("result.openFolder").toUpperCase()}
+                  <button className="btn-ghost" onClick={async () => {
+                    const first = results.find((r) => r.success);
+                    if (first) await invoke("open_folder", { filePath: first.output } as unknown as Record<string, unknown>);
+                  }}>
+                    <IcnFolder size={14} />{t("result.openFolder")}
                   </button>
                 )}
-                <button
-                  onClick={() => { reset(); setBatchFiles([]); }}
-                  className="px-4 py-2 bg-indigo-600 hover:opacity-90 text-white text-xs rounded-lg transition-all tracking-wider font-bold"
-                  style={{ fontFamily: "'Syne', sans-serif" }}
-                >
-                  {t("result.newConversion").toUpperCase()}
+                <button className="btn-primary" onClick={() => { reset(); setBatchFiles([]); }}>
+                  {t("result.newConversion")}
                 </button>
               </div>
             </div>
@@ -596,10 +524,10 @@ export function ImageConverter() {
         </>
       )}
 
-      {/* ── Error (both modes) ───────────────────────────────────────────────── */}
+      {/* Error */}
       {status === "error" && error && (
-        <div className="flex items-start gap-2 text-red-400 text-sm bg-red-950/30 border border-red-900 rounded-lg p-3">
-          <span>✕</span>
+        <div style={{ display: "flex", gap: "8px", color: "var(--error)", fontSize: "13px", background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.2)", borderRadius: "10px", padding: "12px 14px" }}>
+          <IcnX size={15} strokeWidth={2.5} style={{ flexShrink: 0, marginTop: "1px" }} />
           <span>{t("converter.error")}: {error}</span>
         </div>
       )}
