@@ -163,6 +163,18 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
   - `src-tauri/binaries/README.md` toujours présent ✅
 
 
+### ✅ Étape 10b — Suppression des fichiers scaffold inutiles (TERMINÉE)
+- [x] **Vérification des références** : `tauri.svg` et `react.svg` non référencés dans le code ; `vite.svg` uniquement utilisé comme favicon dans `index.html` → favicon remplacé par `src-tauri/icons/icon.png`
+- [x] **Fichiers désindexés** (`git rm --cached`) :
+  - `scripts/ui-refactor.mjs` + `ui-refactor2.mjs` + `ui-refactor3.mjs` + `ui-refactor4.mjs` (scripts ponctuels déjà appliqués)
+  - `public/tauri.svg`, `public/vite.svg` (assets scaffold Tauri/Vite)
+  - `src/assets/react.svg` (asset scaffold React)
+- [x] **`.gitignore` mis à jour** : entrées ajoutées pour `scripts/`, `public/tauri.svg`, `public/vite.svg`, `src/assets/react.svg`
+- [x] **`index.html`** : favicon mis à jour de `vite.svg` → `src-tauri/icons/icon.png`
+- [x] **Commit `9af2e4d`** poussé sur `origin/main` : `abb8f35..9af2e4d`
+- [x] **Vérification** : fichiers toujours présents en local ✅ — absents du tracking git ✅ — `git status` propre ✅
+- [x] `arbo.md` créé à la racine — arborescence complète du projet versionnée
+
 ### ✅ Étape 12 — Refonte visuelle complète (UI Refactor) (TERMINÉE)
 - [x] **Système de design** : tokens CSS sémantiques enrichis — `--surface3`, `--border2`, `--text-sub`, `--shadow-sm` ajoutés ; vert succès `#10B981` (`--success`) ; hiérarchie typographique 9/10/11/12/13/14/24px
 - [x] **SVG Icons** : nouveau composant `src/components/ui/Icons.tsx` — IcnImage, IcnVideo, IcnAudio, IcnHistory, IcnSettings, IcnUpload, IcnCheck, IcnX, IcnChevronDown, IcnChevronRight, IcnFolder, IcnRefresh (stroke-based, 24×24 viewBox, props size/color/strokeWidth)
