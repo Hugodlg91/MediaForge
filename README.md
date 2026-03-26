@@ -113,4 +113,4 @@ See [`arbo.md`](arbo.md) for the full annotated file tree.
 
 ## License
 
-[MIT License](LICENSE) — © 2026 MediaForge
+[MIT License](LICENSE) — © 2026 VladimirWRLD
