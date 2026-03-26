@@ -1,3 +1,11 @@
+# One-off scripts (applied, no longer needed in repo)
+scripts/
+
+# Scaffold assets from create-tauri-app (replaced by real app assets)
+public/tauri.svg
+public/vite.svg
+src/assets/react.svg
+
 # Logs
 logs
 *.log
