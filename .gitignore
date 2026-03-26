@@ -7,24 +7,64 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Dependencies
+node_modules/
 
-# FFmpeg binaries (too large for git, see src-tauri/binaries/README.md)
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
+
+# Rust / Tauri build artefacts
+src-tauri/target/
+src-tauri/WixTools/
+
+# FFmpeg/FFprobe sidecars (place manually — see src-tauri/binaries/README.md)
 src-tauri/binaries/ffmpeg-*
 src-tauri/binaries/ffprobe-*
+!src-tauri/binaries/README.md
 
-# Editor directories and files
+# Built installer log
+src-tauri/build.log
+src-tauri/final-build.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*.user
 
+# Cache
+.cache/
+.turbo/
+.eslintcache
+.parcel-cache/
+
+# Tauri signing keys (never commit private keys)
+*.key
+*.pem
+
+# One-off executables accidentally added
+rustup-init.exe
+
+# Misc
 .claude
+*.local
