@@ -113,4 +113,5 @@ See [`arbo.md`](arbo.md) for the full annotated file tree.
 
 ## License
 
-[MIT License](LICENSE) — © 2026 VladimirWRLD
+MIT + Commons Clause — © 2026 VladimirWRLD
+Free to use and contribute — commercial resale prohibited.

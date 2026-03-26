@@ -193,6 +193,10 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 - [x] Remplacement de la licence propriétaire initiale par la licence MIT standard
 - [x] Commit poussé sur `origin/main`
 
+### ✅ Mise à jour licence → MIT + Commons Clause (TERMINÉE)
+- [x] `LICENSE` : ajout de la clause Commons Clause — interdit la revente commerciale par des tiers tout en conservant la liberté d'usage personnel et de contribution
+- [x] `README.md` : section licence mise à jour → "MIT + Commons Clause — © 2026 VladimirWRLD / Free to use and contribute — commercial resale prohibited."
+
 ### ✅ Étape 11 — Migration data-theme & refonte UI complète (TERMINÉE)
 - [x] **Migration thème** : `applyTheme()` dans `useSettings.ts` → `setAttribute("data-theme", theme)` (replaces `classList.add("dark")`)
 - [x] **Script anti-flash** : `index.html` set `data-theme` sur `<html>` avant le premier render React
