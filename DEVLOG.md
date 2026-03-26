@@ -138,7 +138,30 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 > **Instructions pour l'utilisateur concernant FFmpeg** : 
 > L'installeur actuel contient les *stubs vides* pour FFmpeg (car ce sont les fichiers présents dans `src-tauri/binaries/`). Pour avoir un installeur 100% fonctionnel, veuillez remplacer ces stubs par les vrais exécutables `ffmpeg-x86_64-pc-windows-msvc.exe` et relancer la commande de build.
 
----
+### ✅ Étape 10 — Audit & nettoyage du repo git (TERMINÉE)
+- [x] **Audit `git ls-files`** : liste complète des fichiers trackés examinée
+- [x] **Fichier supprimé du tracking** : `rustup-init.exe` (binaire setup ~30 Mo, n'a jamais sa place dans l'historique git)
+- [x] **Fichiers correctement exclus** (déjà absents du tracking) :
+  - `src-tauri/target/` — Rust build artifacts
+  - `node_modules/` — dépendances npm
+  - `src-tauri/binaries/ffmpeg-*.exe` — sidecar FFmpeg (seul `README.md` conservé ✅)
+  - `dist/` — build frontend Vite
+- [x] **`.gitignore` complété** avec les catégories manquantes :
+  - `src-tauri/target/` et `src-tauri/WixTools/`
+  - `dist/`, `build/`, `out/`
+  - `.env`, `.env.local`, `.env.*.local`
+  - `Thumbs.db`, `desktop.ini` (Windows)
+  - `*.key`, `*.pem` (ne jamais commiter les clés de signature)
+  - `build.log`, `final-build.log`
+  - `*.swp`, `*.swo`, `*.user` (IDE supplémentaires)
+- [x] **Commit de nettoyage** : `bf764a7` — "chore: cleanup gitignore and remove unnecessary tracked files"
+- [x] **Push sur `origin/main`** : `7846c2b..bf764a7`
+- [x] **Vérification finale** :
+  - `git status` → `nothing to commit, working tree clean` ✅
+  - `git ls-files *.exe` → vide ✅
+  - `git ls-files *.log` → vide ✅
+  - `src-tauri/binaries/README.md` toujours présent ✅
+
 
 ### ✅ Étape 12 — Refonte visuelle complète (UI Refactor) (TERMINÉE)
 - [x] **Système de design** : tokens CSS sémantiques enrichis — `--surface3`, `--border2`, `--text-sub`, `--shadow-sm` ajoutés ; vert succès `#10B981` (`--success`) ; hiérarchie typographique 9/10/11/12/13/14/24px
