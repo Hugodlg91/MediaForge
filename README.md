@@ -113,5 +113,4 @@ See [`arbo.md`](arbo.md) for the full annotated file tree.
 
 ## License
 
-All rights reserved — © 2026 MediaForge.  
-This software is proprietary. Redistribution or modification without explicit written permission is not permitted.
+[MIT License](LICENSE) — © 2026 MediaForge
