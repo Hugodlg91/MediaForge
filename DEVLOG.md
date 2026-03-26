@@ -232,6 +232,7 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 - [x] **Release** : draft (relecture avant publication), corps incluant tableau téléchargements + lien CHANGELOG
 - [x] **Permissions** : `contents: write` au niveau workflow (requis pour créer la release GitHub)
 - [x] **CHANGELOG.md** créé à la racine avec le contenu v1.0.0
+- [x] **FUNDING.yml** : `.github/FUNDING.yml` créé — bouton "Sponsor" Ko-fi (`VladimirWRLD`) affiché sur le repo GitHub
 
 ---
 
