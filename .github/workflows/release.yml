@@ -120,6 +120,6 @@ jobs:
 
             See [CHANGELOG](https://github.com/Hugodlg91/MediaForge/blob/main/CHANGELOG.md)
             for full release notes.
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
