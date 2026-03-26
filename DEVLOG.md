@@ -187,11 +187,10 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 - [x] Licence propriétaire (© 2026 MediaForge)
 - [x] Commit `27998ae` poussé sur `origin/main`
 
-### ✅ LICENSE — Licence propriétaire (TERMINÉE)
+### ✅ LICENSE — Licence MIT (TERMINÉE)
 - [x] Fichier `LICENSE` créé à la racine du projet
-- [x] Licence propriétaire : droits réservés, achat unique = licence personnelle non-exclusive non-transférable
-- [x] Sections : Grant of License / Restrictions / Disclaimer of Warranties / Limitation of Liability
-- [x] Contact : `contact@mediaforge.app` *(à remplacer par votre email réel avant de publier)*
+- [x] Licence : **MIT License** (Copyright 2026 MediaForge)
+- [x] Remplacement de la licence propriétaire initiale par la licence MIT standard
 - [x] Commit poussé sur `origin/main`
 
 ### ✅ Étape 11 — Migration data-theme & refonte UI complète (TERMINÉE)
