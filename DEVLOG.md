@@ -220,6 +220,19 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 - [x] **Police offline** : stack système `ui-sans-serif, system-ui, -apple-system, sans-serif` (suppression Google Fonts CDN, respect contrainte 100% offline)
 - [x] `npm run build` : **0 erreur TypeScript** (96 modules, 343 kB JS)
 
+### ✅ Étape 13 — CI/CD GitHub Actions (Release multi-plateforme) (TERMINÉE)
+- [x] `.github/workflows/release.yml` créé — déclenché sur push de tag `v*`
+- [x] **Matrix strategy** : 3 runners en parallèle — `windows-latest`, `macos-latest`, `ubuntu-22.04`
+- [x] **Setup** : Node.js 20, Rust stable, Swatinem/rust-cache (cache Cargo par plateforme)
+- [x] **FFmpeg Windows** : téléchargement depuis gyan.dev (ffmpeg-release-essentials.zip), extraction PowerShell, renommage au format Tauri (`ffmpeg-x86_64-pc-windows-msvc.exe`)
+- [x] **FFmpeg macOS** : `brew install ffmpeg`, copie + chmod vers `ffmpeg-aarch64-apple-darwin` (compatible ARM et Intel via `which ffmpeg`)
+- [x] **FFmpeg Linux** : build statique John Van Sickle (ffmpeg-release-amd64-static.tar.xz), renommage vers `ffmpeg-x86_64-unknown-linux-gnu`, chmod +x
+- [x] **Dépendances Linux** : libgtk-3-dev, libwebkit2gtk-4.1-dev, libappindicator3-dev, librsvg2-dev, patchelf, libxdo-dev, libssl-dev
+- [x] **tauri-apps/tauri-action@v0** : build + création release draft automatique, `args: --target aarch64-apple-darwin` pour macOS
+- [x] **Release** : draft (relecture avant publication), corps incluant tableau téléchargements + lien CHANGELOG
+- [x] **Permissions** : `contents: write` au niveau workflow (requis pour créer la release GitHub)
+- [x] **CHANGELOG.md** créé à la racine avec le contenu v1.0.0
+
 ---
 
 ## Décisions techniques prises

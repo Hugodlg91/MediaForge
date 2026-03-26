@@ -1,0 +1,125 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-tauri:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: ''
+          - platform: macos-latest
+            args: '--target aarch64-apple-darwin'
+          - platform: ubuntu-22.04
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install npm dependencies
+        run: npm install
+
+      # ── Linux system dependencies ──────────────────────────────────────────
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libxdo-dev \
+            libssl-dev
+
+      # ── FFmpeg — Windows ───────────────────────────────────────────────────
+      - name: Download FFmpeg (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+          $zip = "$env:TEMP\ffmpeg.zip"
+          $out = "$env:TEMP\ffmpeg"
+          Invoke-WebRequest -Uri $url -OutFile $zip
+          Expand-Archive -Path $zip -DestinationPath $out -Force
+          $folder = Get-ChildItem -Path $out -Directory | Select-Object -First 1
+          $binDir = Join-Path $folder.FullName "bin"
+          Copy-Item "$binDir\ffmpeg.exe"  "src-tauri\binaries\ffmpeg-x86_64-pc-windows-msvc.exe"  -Force
+          Copy-Item "$binDir\ffprobe.exe" "src-tauri\binaries\ffprobe-x86_64-pc-windows-msvc.exe" -Force
+
+      # ── FFmpeg — macOS ─────────────────────────────────────────────────────
+      - name: Download FFmpeg (macOS)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          brew install ffmpeg
+          # Homebrew path differs between ARM (Apple Silicon) and Intel runners
+          FFMPEG_PATH=$(which ffmpeg)
+          FFPROBE_PATH=$(which ffprobe)
+          cp "$FFMPEG_PATH"  src-tauri/binaries/ffmpeg-aarch64-apple-darwin
+          cp "$FFPROBE_PATH" src-tauri/binaries/ffprobe-aarch64-apple-darwin
+          chmod +x src-tauri/binaries/ffmpeg-aarch64-apple-darwin
+          chmod +x src-tauri/binaries/ffprobe-aarch64-apple-darwin
+
+      # ── FFmpeg — Linux ─────────────────────────────────────────────────────
+      - name: Download FFmpeg (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
+            -o /tmp/ffmpeg.tar.xz
+          tar -xf /tmp/ffmpeg.tar.xz -C /tmp
+          FOLDER=$(find /tmp -maxdepth 1 -name 'ffmpeg-*-amd64-static' -type d | head -1)
+          cp "$FOLDER/ffmpeg"  src-tauri/binaries/ffmpeg-x86_64-unknown-linux-gnu
+          cp "$FOLDER/ffprobe" src-tauri/binaries/ffprobe-x86_64-unknown-linux-gnu
+          chmod +x src-tauri/binaries/ffmpeg-x86_64-unknown-linux-gnu
+          chmod +x src-tauri/binaries/ffprobe-x86_64-unknown-linux-gnu
+
+      # ── Build & publish ────────────────────────────────────────────────────
+      - name: Build and publish
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "MediaForge ${{ github.ref_name }}"
+          releaseBody: |
+            ## MediaForge ${{ github.ref_name }}
+
+            ### Download
+            - **Windows** : `MediaForge_x64-setup.exe` (recommended) or `.msi`
+            - **macOS** : `MediaForge_aarch64.dmg`
+            - **Linux** : `MediaForge_amd64.AppImage` or `.deb`
+
+            ### Requirements
+            No additional runtime required — FFmpeg is bundled.
+
+            See [CHANGELOG](https://github.com/Hugodlg91/MediaForge/blob/main/CHANGELOG.md)
+            for full release notes.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
