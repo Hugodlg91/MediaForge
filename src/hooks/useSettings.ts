@@ -4,6 +4,9 @@ import i18n from "../i18n";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export type ConflictStrategy = "rename" | "overwrite";
+export type HwAcceleration = "auto" | "hardware" | "software";
+
 export interface AppSettings {
   language: string;
   theme: "dark" | "light";
@@ -11,6 +14,9 @@ export interface AppSettings {
   default_video_format: string;
   default_audio_format: string;
   default_image_format: string;
+  filename_suffix: string;
+  conflict_strategy: ConflictStrategy;
+  hw_acceleration: HwAcceleration;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -20,6 +26,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   default_video_format: "mp4",
   default_audio_format: "mp3",
   default_image_format: "webp",
+  filename_suffix: "_converted",
+  conflict_strategy: "rename",
+  hw_acceleration: "auto",
 };
 
 // ─── Theme helper ─────────────────────────────────────────────────────────────
@@ -39,9 +48,11 @@ export function useSettings() {
   useEffect(() => {
     invoke<AppSettings>("get_settings")
       .then((s) => {
-        setSettings(s);
-        applyTheme(s.theme);
-        i18n.changeLanguage(s.language);
+        // Merge with defaults so older stores missing new keys stay valid
+        const merged = { ...DEFAULT_SETTINGS, ...s };
+        setSettings(merged);
+        applyTheme(merged.theme);
+        i18n.changeLanguage(merged.language);
       })
       .catch(() => {
         // Use defaults if store unavailable; still apply default theme

@@ -9,10 +9,13 @@ import {
   BatchResult,
 } from "../../hooks/useImageConversion";
 import { buildOutputPath, formatFileSize } from "../../utils/path";
+import { resolveConflict } from "../../utils/output";
 import { useSettingsContext } from "../../context/SettingsContext";
+import { usePresets } from "../../hooks/usePresets";
 import { ProgressBar } from "./ProgressBar";
 import { DropZone } from "../ui/DropZone";
 import { ConversionResult } from "../ui/ConversionResult";
+import { PresetBar } from "../ui/PresetBar";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -118,6 +121,35 @@ export function ImageConverter() {
   const [resizeHeight, setResizeHeight] = useState("");
   const [keepAspectRatio, setKeepAspectRatio] = useState(true);
 
+  // Named presets (saved option sets)
+  const { presets: savedPresets, savePreset, deletePreset } = usePresets("image");
+  const presetSnapshot = {
+    outputFormat,
+    quality,
+    resizeEnabled,
+    resizeWidth,
+    resizeHeight,
+    keepAspectRatio,
+  };
+  const applySavedPreset = useCallback((sp: Record<string, unknown>) => {
+    if (typeof sp.outputFormat === "string") setOutputFormat(sp.outputFormat as ImageFormat);
+    if (typeof sp.quality === "number") setQuality(sp.quality);
+    setResizeEnabled(Boolean(sp.resizeEnabled));
+    setResizeWidth(typeof sp.resizeWidth === "string" ? sp.resizeWidth : "");
+    setResizeHeight(typeof sp.resizeHeight === "string" ? sp.resizeHeight : "");
+    setKeepAspectRatio(sp.keepAspectRatio === undefined ? true : Boolean(sp.keepAspectRatio));
+  }, []);
+
+  const presetBar = (
+    <PresetBar
+      presets={savedPresets}
+      current={presetSnapshot}
+      onApply={applySavedPreset}
+      onSave={savePreset}
+      onDelete={deletePreset}
+    />
+  );
+
   const isConverting = status === "converting";
   const isDone = status === "done";
 
@@ -163,7 +195,7 @@ export function ImageConverter() {
 
   const handleFormatChange = (fmt: ImageFormat) => {
     setOutputFormat(fmt);
-    if (inputPath) setOutputPath(buildOutputPath(inputPath, fmt, settings.output_dir ?? undefined));
+    if (inputPath) setOutputPath(buildOutputPath(inputPath, fmt, settings.output_dir ?? undefined, settings.filename_suffix));
   };
 
   // ── File selection ─────────────────────────────────────────────────────────
@@ -171,7 +203,7 @@ export function ImageConverter() {
   const handleSingleFileSelected = useCallback(
     async (path: string) => {
       setInputPath(path);
-      setOutputPath(buildOutputPath(path, outputFormat, settings.output_dir ?? undefined));
+      setOutputPath(buildOutputPath(path, outputFormat, settings.output_dir ?? undefined, settings.filename_suffix));
       setPreviewSrc(convertFileSrc(path));
       reset();
       setImageInfo(null);
@@ -182,7 +214,7 @@ export function ImageConverter() {
         // non-blocking
       }
     },
-    [outputFormat, settings.output_dir, getImageInfo, reset]
+    [outputFormat, settings.output_dir, settings.filename_suffix, getImageInfo, reset]
   );
 
   const handleBatchFilesAdded = useCallback(
@@ -201,22 +233,29 @@ export function ImageConverter() {
 
   const handleConvertSingle = useCallback(async () => {
     if (!inputPath || !outputPath) return;
+    const finalOut = await resolveConflict(outputPath, settings.conflict_strategy);
+    setOutputPath(finalOut);
     await convertImage({
       input_path: inputPath,
-      output_path: outputPath,
+      output_path: finalOut,
       format: outputFormat,
       quality: QUALITY_FORMATS.includes(outputFormat) ? quality : undefined,
       resize: getResizeOptions(),
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputPath, outputPath, outputFormat, quality, resizeEnabled, resizeWidth, resizeHeight, keepAspectRatio, convertImage]);
+  }, [inputPath, outputPath, outputFormat, quality, resizeEnabled, resizeWidth, resizeHeight, keepAspectRatio, settings.conflict_strategy, convertImage]);
 
   const handleConvertBatch = useCallback(async () => {
     if (batchFiles.length === 0) return;
-    const files: BatchImageItem[] = batchFiles.map((p) => ({
-      input_path: p,
-      output_path: buildOutputPath(p, outputFormat, settings.output_dir ?? undefined),
-    }));
+    const files: BatchImageItem[] = await Promise.all(
+      batchFiles.map(async (p) => ({
+        input_path: p,
+        output_path: await resolveConflict(
+          buildOutputPath(p, outputFormat, settings.output_dir ?? undefined, settings.filename_suffix),
+          settings.conflict_strategy
+        ),
+      }))
+    );
     await convertImagesBatch({
       files,
       format: outputFormat,
@@ -224,7 +263,7 @@ export function ImageConverter() {
       resize: getResizeOptions(),
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [batchFiles, outputFormat, quality, resizeEnabled, resizeWidth, resizeHeight, keepAspectRatio, convertImagesBatch]);
+  }, [batchFiles, outputFormat, quality, resizeEnabled, resizeWidth, resizeHeight, keepAspectRatio, settings.output_dir, settings.filename_suffix, settings.conflict_strategy, convertImagesBatch]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -317,6 +356,8 @@ export function ImageConverter() {
           {/* Options (show only when file selected and not converting) */}
           {inputPath && !isConverting && !isDone && (
             <>
+              {presetBar}
+
               {/* Format pills */}
               <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
                 <div className="text-[10px] text-gray-500 tracking-widest mb-3">
@@ -504,6 +545,8 @@ export function ImageConverter() {
           {/* Options */}
           {batchFiles.length > 0 && !isConverting && !isDone && (
             <>
+              {presetBar}
+
               <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
                 <div className="text-[10px] text-gray-500 tracking-widest mb-3">
                   {t("converter.output_format").toUpperCase()}

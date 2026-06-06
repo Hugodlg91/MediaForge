@@ -198,3 +198,26 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 ### Étape 10
 - **`missing required key inputPath`** : Les commandes Tauri v2 attendent les arguments en `camelCase` par défaut (ex: `inputPath`), mais notre typage JS passait les objets en `snake_case` (`input_path`). **Fix** : Ajout de l'attribut `#[tauri::command(rename_all = "snake_case")]` sur l'ensemble des commandes Rust dans `lib.rs`.
 - **Nouveau Build** : L'installeur a été régénéré avec succès pour inclure la refonte graphique (palette violette #7c6aff, typographies DM Mono / Syne, etc).
+
+---
+
+### ✅ Étape 12 — Accélération matérielle, batch images parallèle, presets & gestion des conflits (TERMINÉE)
+- [x] **Accélération matérielle vidéo** :
+  - Rust : commande `detect_hw_encoders` (probe `ffmpeg -encoders`, renvoie le sous-ensemble de `KNOWN_HW_ENCODERS` : nvenc/qsv/videotoolbox/amf disponibles)
+  - Rust : helper `video_codec_args` — mappe `h264/h265/vp9` vers libx264/libx265/libvpx-vp9, et laisse passer tel quel les noms d'encodeurs explicites (ex. `h264_nvenc`) ; utilisé par `convert_video` et `convert_video_batch`
+  - Front : `utils/output.ts` → `detectHwEncoders()` (cache), `chooseVideoEncoder(codec, accel, available)` (priorité NVENC→QSV→VideoToolbox→AMF, repli logiciel)
+  - UI : sélecteur Accélération (Auto / GPU / CPU) dans les options avancées vidéo + avertissement si aucun encodeur GPU détecté
+- [x] **Batch images parallèle** : `convert_images_batch` réécrit — fan-out sur `std::thread::available_parallelism()` via `spawn_blocking` par chunks, progression par fichier terminé (compteur atomique)
+- [x] **Presets** :
+  - Rust : struct `Preset` + commandes `get_presets`/`save_preset`/`delete_preset` (store `presets.json`, même pattern que l'historique)
+  - Front : hook `usePresets(mediaType)` + composant réutilisable `ui/PresetBar.tsx` (appliquer/enregistrer/supprimer) câblé dans Vidéo, Audio et Image
+- [x] **Noms de sortie & conflits** :
+  - Réglages : `filename_suffix` (suffixe configurable, défaut `_converted`), `conflict_strategy` (`rename`/`overwrite`), `hw_acceleration` (`auto`/`hardware`/`software`)
+  - Rust : commande `unique_output_path` (insère ` (1)`, ` (2)`… avant l'extension si le fichier existe)
+  - Front : `buildOutputPath` accepte un suffixe ; `resolveConflict` appliqué dans tous les flux single + batch (vidéo/audio/image)
+  - SettingsPage : nouvelles lignes Suffixe / Si le fichier existe / Accélération vidéo
+- [x] **i18n** : clés `converter.acceleration`, `converter.noHwDetected`, bloc `presets.*`, `settings.filenameSuffix/conflictStrategy/conflictRename/conflictOverwrite/hwAcceleration/hwAuto/hwGpu/hwCpu` ajoutées dans les 5 langues
+- [x] **Tests** : ajout de `test_video_codec_args_simple` + `test_video_codec_args_passthrough` et assertions des nouveaux champs `Settings` côté Rust
+- [x] `npx tsc --noEmit` : **0 erreur** — `npx vitest run` : **23/23 tests TS passent** — `vite build` : **0 erreur** (98 modules, 348 kB JS)
+
+> **Note environnement** : les éditions doivent passer par des scripts shell (python/heredoc) — les outils d'édition de fichiers tronquent les fichiers en CRLF sur ce montage Windows. Les fichiers ont été normalisés en LF.

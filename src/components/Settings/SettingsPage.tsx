@@ -280,6 +280,47 @@ export function SettingsPage() {
               onChange={(v) => updateSettings({ default_image_format: v })}
             />
           </SettingRow>
+
+          <SettingRow label={t("settings.filenameSuffix")}>
+            <input
+              value={settings.filename_suffix}
+              onChange={(e) => updateSettings({ filename_suffix: e.target.value })}
+              placeholder="_converted"
+              style={{
+                fontSize: "11px",
+                padding: "4px 10px",
+                border: "1px solid var(--border)",
+                borderRadius: "6px",
+                background: "var(--surface)",
+                color: "var(--text)",
+                outline: "none",
+                width: "130px",
+              }}
+            />
+          </SettingRow>
+
+          <SettingRow label={t("settings.conflictStrategy")}>
+            <PillSelect
+              value={settings.conflict_strategy}
+              options={[
+                { value: "rename", label: t("settings.conflictRename") },
+                { value: "overwrite", label: t("settings.conflictOverwrite") },
+              ]}
+              onChange={(v) => updateSettings({ conflict_strategy: v as "rename" | "overwrite" })}
+            />
+          </SettingRow>
+
+          <SettingRow label={t("settings.hwAcceleration")}>
+            <PillSelect
+              value={settings.hw_acceleration}
+              options={[
+                { value: "auto", label: t("settings.hwAuto") },
+                { value: "hardware", label: t("settings.hwGpu") },
+                { value: "software", label: t("settings.hwCpu") },
+              ]}
+              onChange={(v) => updateSettings({ hw_acceleration: v as "auto" | "hardware" | "software" })}
+            />
+          </SettingRow>
         </SectionCard>
 
         {/* ── A PROPOS ──────────────────────────────────────────────────────── */}

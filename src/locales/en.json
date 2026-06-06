@@ -34,7 +34,9 @@
     "cancel": "Cancel",
     "done": "Conversion complete!",
     "error": "Error",
-    "convert_another": "Convert another file"
+    "convert_another": "Convert another file",
+    "acceleration": "Acceleration",
+    "noHwDetected": "No GPU encoder detected — CPU fallback"
   },
   "status": {
     "ready": "Ready",
@@ -95,7 +97,23 @@
     "defaultImage": "Image",
     "about": "About",
     "version": "Version",
-    "localOnly": "100% local — no data sent"
+    "localOnly": "100% local — no data sent",
+    "filenameSuffix": "Name suffix",
+    "conflictStrategy": "If file exists",
+    "conflictRename": "Rename",
+    "conflictOverwrite": "Overwrite",
+    "hwAcceleration": "Video acceleration",
+    "hwAuto": "Auto",
+    "hwGpu": "GPU",
+    "hwCpu": "CPU"
+  },
+  "presets": {
+    "label": "Presets",
+    "apply": "Apply",
+    "delete": "Delete",
+    "save": "Save",
+    "confirm": "OK",
+    "namePlaceholder": "Preset name"
   },
   "dropzone": {
     "label": "Drop files here or click to browse",

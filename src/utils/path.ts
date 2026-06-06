@@ -7,11 +7,14 @@
  *     → "/home/user/video_converted.mkv"
  *   buildOutputPath("/home/user/video.mp4", "mkv", "/tmp/out")
  *     → "/tmp/out/video_converted.mkv"
+ *   buildOutputPath("/home/user/video.mp4", "mkv", undefined, "-hd")
+ *     → "/home/user/video-hd.mkv"
  */
 export function buildOutputPath(
   inputPath: string,
   extension: string,
-  destFolder?: string
+  destFolder?: string,
+  suffix: string = "_converted"
 ): string {
   // Normalise separators to forward-slash
   const normalised = inputPath.replace(/\\/g, "/");
@@ -26,7 +29,7 @@ export function buildOutputPath(
     : fileName;
 
   const dir = destFolder ? destFolder.replace(/\\/g, "/").replace(/\/$/, "") : dirPart;
-  return `${dir}/${nameWithoutExt}_converted.${extension}`;
+  return `${dir}/${nameWithoutExt}${suffix}.${extension}`;
 }
 
 /** Format bytes as a human-readable string (KB, MB, GB). */

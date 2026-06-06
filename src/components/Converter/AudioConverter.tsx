@@ -8,10 +8,13 @@ import {
   BatchResult,
 } from "../../hooks/useConversion";
 import { buildOutputPath, formatFileSize, formatDuration } from "../../utils/path";
+import { resolveConflict } from "../../utils/output";
 import { useSettingsContext } from "../../context/SettingsContext";
+import { usePresets } from "../../hooks/usePresets";
 import { ProgressBar } from "./ProgressBar";
 import { DropZone } from "../ui/DropZone";
 import { ConversionResult } from "../ui/ConversionResult";
+import { PresetBar } from "../ui/PresetBar";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -122,6 +125,16 @@ export function AudioConverter() {
   const [normalize, setNormalize] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  // Named presets
+  const { presets, savePreset, deletePreset } = usePresets("audio");
+  const presetSnapshot = { outputFormat, bitrate, sampleRate, normalize };
+  const applyPreset = useCallback((sp: Record<string, unknown>) => {
+    if (typeof sp.outputFormat === "string") setOutputFormat(sp.outputFormat as AudioFormat);
+    setBitrate((sp.bitrate as string) || undefined);
+    setSampleRate((sp.sampleRate as string) || undefined);
+    setNormalize(Boolean(sp.normalize));
+  }, []);
+
   const isConverting = status === "converting";
   const isDone = status === "done";
 
@@ -130,7 +143,7 @@ export function AudioConverter() {
   const handleFileSelected = useCallback(
     async (path: string) => {
       setInputPath(path);
-      setOutputPath(buildOutputPath(path, outputFormat, settings.output_dir ?? undefined));
+      setOutputPath(buildOutputPath(path, outputFormat, settings.output_dir ?? undefined, settings.filename_suffix));
       reset();
       setMediaInfo(null);
       try {
@@ -140,23 +153,25 @@ export function AudioConverter() {
         // non-blocking
       }
     },
-    [outputFormat, settings.output_dir, getMediaInfo, reset]
+    [outputFormat, settings.output_dir, settings.filename_suffix, getMediaInfo, reset]
   );
 
   const handleConvert = useCallback(async () => {
     if (!inputPath || !outputPath) return;
+    const finalOut = await resolveConflict(outputPath, settings.conflict_strategy);
+    setOutputPath(finalOut);
     await convertAudio({
       input_path: inputPath,
-      output_path: outputPath,
+      output_path: finalOut,
       bitrate,
       sample_rate: sampleRate,
       normalize,
     });
-  }, [inputPath, outputPath, bitrate, sampleRate, normalize, convertAudio]);
+  }, [inputPath, outputPath, bitrate, sampleRate, normalize, settings.conflict_strategy, convertAudio]);
 
   const handleFormatChange = (fmt: AudioFormat) => {
     setOutputFormat(fmt);
-    if (inputPath) setOutputPath(buildOutputPath(inputPath, fmt, settings.output_dir ?? undefined));
+    if (inputPath) setOutputPath(buildOutputPath(inputPath, fmt, settings.output_dir ?? undefined, settings.filename_suffix));
   };
 
   // ── Batch mode handlers ────────────────────────────────────────────────────
@@ -175,12 +190,17 @@ export function AudioConverter() {
 
   const handleConvertBatch = useCallback(async () => {
     if (batchFiles.length === 0) return;
-    const files: BatchMediaItem[] = batchFiles.map((p) => ({
-      input_path: p,
-      output_path: buildOutputPath(p, outputFormat, settings.output_dir ?? undefined),
-    }));
+    const files: BatchMediaItem[] = await Promise.all(
+      batchFiles.map(async (p) => ({
+        input_path: p,
+        output_path: await resolveConflict(
+          buildOutputPath(p, outputFormat, settings.output_dir ?? undefined, settings.filename_suffix),
+          settings.conflict_strategy
+        ),
+      }))
+    );
     await convertAudioBatch({ files, bitrate, sample_rate: sampleRate, normalize });
-  }, [batchFiles, outputFormat, settings.output_dir, bitrate, sampleRate, normalize, convertAudioBatch]);
+  }, [batchFiles, outputFormat, settings.output_dir, settings.filename_suffix, settings.conflict_strategy, bitrate, sampleRate, normalize, convertAudioBatch]);
 
   // ── Progress label for batch ───────────────────────────────────────────────
 
@@ -195,6 +215,15 @@ export function AudioConverter() {
 
   const optionsPanel = (
     <>
+      {/* Presets */}
+      <PresetBar
+        presets={presets}
+        current={presetSnapshot}
+        onApply={applyPreset}
+        onSave={savePreset}
+        onDelete={deletePreset}
+      />
+
       {/* Format pills */}
       <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
         <div className="text-[10px] text-gray-500 tracking-widest mb-3">

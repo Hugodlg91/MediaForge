@@ -34,7 +34,9 @@
     "cancel": "Abbrechen",
     "done": "Konvertierung abgeschlossen!",
     "error": "Fehler",
-    "convert_another": "Weitere Datei konvertieren"
+    "convert_another": "Weitere Datei konvertieren",
+    "acceleration": "Beschleunigung",
+    "noHwDetected": "Kein GPU-Encoder erkannt — CPU-Fallback"
   },
   "status": {
     "ready": "Bereit",
@@ -95,7 +97,23 @@
     "defaultImage": "Bild",
     "about": "Über",
     "version": "Version",
-    "localOnly": "100% lokal — keine Daten gesendet"
+    "localOnly": "100% lokal — keine Daten gesendet",
+    "filenameSuffix": "Namenssuffix",
+    "conflictStrategy": "Wenn Datei existiert",
+    "conflictRename": "Umbenennen",
+    "conflictOverwrite": "Überschreiben",
+    "hwAcceleration": "Video-Beschleunigung",
+    "hwAuto": "Auto",
+    "hwGpu": "GPU",
+    "hwCpu": "CPU"
+  },
+  "presets": {
+    "label": "Presets",
+    "apply": "Anwenden",
+    "delete": "Löschen",
+    "save": "Speichern",
+    "confirm": "OK",
+    "namePlaceholder": "Preset-Name"
   },
   "dropzone": {
     "label": "Dateien hier ablegen oder klicken zum Durchsuchen",

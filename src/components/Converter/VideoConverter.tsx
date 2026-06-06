@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import {
@@ -8,10 +8,14 @@ import {
   BatchResult,
 } from "../../hooks/useConversion";
 import { buildOutputPath, formatFileSize, formatDuration } from "../../utils/path";
+import { detectHwEncoders, chooseVideoEncoder, resolveConflict } from "../../utils/output";
 import { useSettingsContext } from "../../context/SettingsContext";
+import type { HwAcceleration } from "../../hooks/useSettings";
+import { usePresets } from "../../hooks/usePresets";
 import { ProgressBar } from "./ProgressBar";
 import { DropZone } from "../ui/DropZone";
 import { ConversionResult } from "../ui/ConversionResult";
+import { PresetBar } from "../ui/PresetBar";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -38,6 +42,12 @@ const BITRATES = [
   { label: "2 Mbps", value: "2M" },
   { label: "5 Mbps", value: "5M" },
   { label: "10 Mbps", value: "10M" },
+];
+
+const ACCELERATIONS: { key: HwAcceleration; label: string }[] = [
+  { key: "auto", label: "Auto" },
+  { key: "hardware", label: "GPU" },
+  { key: "software", label: "CPU" },
 ];
 
 // ─── Batch file list ──────────────────────────────────────────────────────────
@@ -120,7 +130,25 @@ export function VideoConverter() {
   const [resolution, setResolution] = useState<string | undefined>(undefined);
   const [codec, setCodec] = useState<string | undefined>(undefined);
   const [bitrate, setBitrate] = useState<string | undefined>(undefined);
+  const [accel, setAccel] = useState<HwAcceleration>(settings.hw_acceleration);
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Hardware encoders available on this machine (probed once)
+  const [hwEncoders, setHwEncoders] = useState<string[]>([]);
+  useEffect(() => {
+    detectHwEncoders().then(setHwEncoders);
+  }, []);
+
+  // Named presets
+  const { presets, savePreset, deletePreset } = usePresets("video");
+  const presetSnapshot = { outputFormat, resolution, codec, bitrate, accel };
+  const applyPreset = useCallback((sp: Record<string, unknown>) => {
+    if (typeof sp.outputFormat === "string") setOutputFormat(sp.outputFormat as VideoFormat);
+    setResolution((sp.resolution as string) || undefined);
+    setCodec((sp.codec as string) || undefined);
+    setBitrate((sp.bitrate as string) || undefined);
+    if (typeof sp.accel === "string") setAccel(sp.accel as HwAcceleration);
+  }, []);
 
   const isConverting = status === "converting";
   const isDone = status === "done";
@@ -130,7 +158,7 @@ export function VideoConverter() {
   const handleFileSelected = useCallback(
     async (path: string) => {
       setInputPath(path);
-      setOutputPath(buildOutputPath(path, outputFormat, settings.output_dir ?? undefined));
+      setOutputPath(buildOutputPath(path, outputFormat, settings.output_dir ?? undefined, settings.filename_suffix));
       reset();
       setMediaInfo(null);
       try {
@@ -140,17 +168,20 @@ export function VideoConverter() {
         // non-blocking
       }
     },
-    [outputFormat, settings.output_dir, getMediaInfo, reset]
+    [outputFormat, settings.output_dir, settings.filename_suffix, getMediaInfo, reset]
   );
 
   const handleConvert = useCallback(async () => {
     if (!inputPath || !outputPath) return;
-    await convertVideo({ input_path: inputPath, output_path: outputPath, resolution, codec, bitrate });
-  }, [inputPath, outputPath, resolution, codec, bitrate, convertVideo]);
+    const codecArg = chooseVideoEncoder(codec, accel, hwEncoders);
+    const finalOut = await resolveConflict(outputPath, settings.conflict_strategy);
+    setOutputPath(finalOut);
+    await convertVideo({ input_path: inputPath, output_path: finalOut, resolution, codec: codecArg, bitrate });
+  }, [inputPath, outputPath, resolution, codec, bitrate, accel, hwEncoders, settings.conflict_strategy, convertVideo]);
 
   const handleFormatChange = (fmt: VideoFormat) => {
     setOutputFormat(fmt);
-    if (inputPath) setOutputPath(buildOutputPath(inputPath, fmt, settings.output_dir ?? undefined));
+    if (inputPath) setOutputPath(buildOutputPath(inputPath, fmt, settings.output_dir ?? undefined, settings.filename_suffix));
   };
 
   // ── Batch mode handlers ────────────────────────────────────────────────────
@@ -169,12 +200,18 @@ export function VideoConverter() {
 
   const handleConvertBatch = useCallback(async () => {
     if (batchFiles.length === 0) return;
-    const files: BatchMediaItem[] = batchFiles.map((p) => ({
-      input_path: p,
-      output_path: buildOutputPath(p, outputFormat, settings.output_dir ?? undefined),
-    }));
-    await convertVideoBatch({ files, resolution, codec, bitrate });
-  }, [batchFiles, outputFormat, settings.output_dir, resolution, codec, bitrate, convertVideoBatch]);
+    const codecArg = chooseVideoEncoder(codec, accel, hwEncoders);
+    const files: BatchMediaItem[] = await Promise.all(
+      batchFiles.map(async (p) => ({
+        input_path: p,
+        output_path: await resolveConflict(
+          buildOutputPath(p, outputFormat, settings.output_dir ?? undefined, settings.filename_suffix),
+          settings.conflict_strategy
+        ),
+      }))
+    );
+    await convertVideoBatch({ files, resolution, codec: codecArg, bitrate });
+  }, [batchFiles, outputFormat, settings.output_dir, settings.filename_suffix, settings.conflict_strategy, resolution, codec, bitrate, accel, hwEncoders, convertVideoBatch]);
 
   // ── Progress label for batch ───────────────────────────────────────────────
 
@@ -189,6 +226,15 @@ export function VideoConverter() {
 
   const optionsPanel = (
     <>
+      {/* Presets */}
+      <PresetBar
+        presets={presets}
+        current={presetSnapshot}
+        onApply={applyPreset}
+        onSave={savePreset}
+        onDelete={deletePreset}
+      />
+
       {/* Format pills */}
       <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
         <div className="text-[10px] text-gray-500 tracking-widest mb-3">
@@ -239,6 +285,15 @@ export function VideoConverter() {
             <select value={bitrate ?? ""} onChange={(e) => setBitrate(e.target.value || undefined)} className={selectCls}>
               {BITRATES.map((b) => <option key={b.label} value={b.value ?? ""}>{b.label}</option>)}
             </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-gray-500 text-[10px] tracking-widest">{t("converter.acceleration").toUpperCase()}</label>
+            <select value={accel} onChange={(e) => setAccel(e.target.value as HwAcceleration)} className={selectCls}>
+              {ACCELERATIONS.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
+            </select>
+            {accel !== "software" && hwEncoders.length === 0 && (
+              <span className="text-[9px] text-gray-600">{t("converter.noHwDetected")}</span>
+            )}
           </div>
         </div>
       )}

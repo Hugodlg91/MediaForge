@@ -76,6 +76,36 @@ fn format_secs(secs: f64) -> String {
     format!("{:02}:{:02}:{:02}", h, m, s)
 }
 
+/// Map a user-facing codec choice to FFmpeg `-c:v` args.
+///
+/// Simple names map to software encoders. Explicit encoder names
+/// (e.g. "h264_nvenc", "hevc_videotoolbox") are passed through unchanged so
+/// the frontend can request hardware-accelerated encoders after detection.
+fn video_codec_args(codec: &str) -> Vec<String> {
+    let enc = match codec {
+        "h264" => "libx264",
+        "h265" | "hevc" => "libx265",
+        "vp9" => "libvpx-vp9",
+        other => other,
+    };
+    vec!["-c:v".into(), enc.into()]
+}
+
+/// Hardware encoders MediaForge knows how to surface. We probe `ffmpeg -encoders`
+/// and keep only the ones actually compiled into the bundled binary.
+const KNOWN_HW_ENCODERS: &[&str] = &[
+    "h264_nvenc",
+    "hevc_nvenc",
+    "av1_nvenc",
+    "h264_qsv",
+    "hevc_qsv",
+    "vp9_qsv",
+    "h264_videotoolbox",
+    "hevc_videotoolbox",
+    "h264_amf",
+    "hevc_amf",
+];
+
 // ─── Core FFmpeg runner ───────────────────────────────────────────────────────
 
 /// Spawn ffmpeg with the given args, stream progress events, and return the
@@ -208,11 +238,10 @@ async fn convert_video(
         args.extend(["-vf".into(), format!("scale={}", scale)]);
     }
 
-    match codec.as_deref() {
-        Some("h264") => args.extend(["-c:v".into(), "libx264".into()]),
-        Some("h265") => args.extend(["-c:v".into(), "libx265".into()]),
-        Some("vp9") => args.extend(["-c:v".into(), "libvpx-vp9".into()]),
-        _ => {} // auto / copy
+    if let Some(c) = codec.as_deref() {
+        if !c.is_empty() {
+            args.extend(video_codec_args(c));
+        }
     }
 
     if let Some(br) = &bitrate {
@@ -356,6 +385,37 @@ async fn get_media_info(
 }
 
 // ─── Image types ─────────────────────────────────────────────────────────────
+
+/// Probe the bundled FFmpeg for available hardware video encoders.
+/// Returns the subset of `KNOWN_HW_ENCODERS` that FFmpeg reports as built-in.
+/// The frontend uses this to decide whether to request NVENC/QSV/VideoToolbox/AMF.
+#[tauri::command(rename_all = "snake_case")]
+async fn detect_hw_encoders(app: tauri::AppHandle) -> Result<Vec<String>, String> {
+    let (mut rx, _child) = app
+        .shell()
+        .sidecar("ffmpeg")
+        .map_err(|e| e.to_string())?
+        .args(["-hide_banner", "-encoders"])
+        .spawn()
+        .map_err(|e| e.to_string())?;
+
+    let mut out = String::new();
+    while let Some(event) = rx.recv().await {
+        match event {
+            CommandEvent::Stdout(bytes) => out.push_str(&String::from_utf8_lossy(&bytes)),
+            CommandEvent::Stderr(bytes) => out.push_str(&String::from_utf8_lossy(&bytes)),
+            CommandEvent::Terminated(_) => break,
+            _ => {}
+        }
+    }
+
+    let found: Vec<String> = KNOWN_HW_ENCODERS
+        .iter()
+        .filter(|enc| out.contains(**enc))
+        .map(|s| s.to_string())
+        .collect();
+    Ok(found)
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ResizeOptions {
@@ -528,40 +588,68 @@ async fn convert_images_batch(
     quality: Option<u8>,
     resize: Option<ResizeOptions>,
 ) -> Result<Vec<BatchResult>, String> {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    let files: Vec<BatchImageItem> = files;
     let total = files.len();
+    if total == 0 {
+        return Ok(Vec::new());
+    }
+
+    // Image conversion is CPU-bound, so fan it out across the available cores
+    // instead of processing strictly one file at a time.
+    let concurrency = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(4)
+        .max(1);
+
+    let completed = AtomicUsize::new(0);
     let mut results: Vec<BatchResult> = Vec::with_capacity(total);
 
-    for (i, item) in files.into_iter().enumerate() {
-        let file_name = std::path::Path::new(&item.input_path)
-            .file_name()
-            .map(|n| n.to_string_lossy().to_string())
-            .unwrap_or_default();
+    // Process in chunks of `concurrency`: every file in a chunk runs on its own
+    // blocking thread, then we await the whole chunk before starting the next.
+    for chunk in files.chunks(concurrency) {
+        let mut handles = Vec::with_capacity(chunk.len());
 
-        let _ = app.emit(
-            "image_progress",
-            ImageProgressPayload {
-                percentage: (i as f32 / total as f32) * 100.0,
-                current_file: Some(file_name),
-            },
-        );
+        for item in chunk.iter().cloned() {
+            let fmt = format.clone();
+            let resize_clone = resize.clone();
+            handles.push(tauri::async_runtime::spawn_blocking(move || {
+                let res = process_single_image(
+                    &item.input_path,
+                    &item.output_path,
+                    &fmt,
+                    quality,
+                    resize_clone.as_ref(),
+                );
+                (item, res)
+            }));
+        }
 
-        let input = item.input_path.clone();
-        let output = item.output_path.clone();
-        let fmt = format.clone();
-        let resize_clone = resize.clone();
+        for handle in handles {
+            let (item, res) = handle.await.map_err(|e| e.to_string())?;
 
-        let result = tauri::async_runtime::spawn_blocking(move || {
-            process_single_image(&input, &output, &fmt, quality, resize_clone.as_ref())
-        })
-        .await
-        .map_err(|e| e.to_string())?;
+            let done = completed.fetch_add(1, Ordering::SeqCst) + 1;
+            let file_name = std::path::Path::new(&item.input_path)
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
 
-        results.push(BatchResult {
-            input: item.input_path,
-            output: item.output_path,
-            success: result.is_ok(),
-            error: result.err(),
-        });
+            let _ = app.emit(
+                "image_progress",
+                ImageProgressPayload {
+                    percentage: (done as f32 / total as f32) * 100.0,
+                    current_file: Some(file_name),
+                },
+            );
+
+            results.push(BatchResult {
+                input: item.input_path,
+                output: item.output_path,
+                success: res.is_ok(),
+                error: res.err(),
+            });
+        }
     }
 
     let _ = app.emit(
@@ -662,11 +750,10 @@ async fn convert_video_batch(
             args.extend(["-vf".into(), format!("scale={}", scale)]);
         }
 
-        match codec.as_deref() {
-            Some("h264") => args.extend(["-c:v".into(), "libx264".into()]),
-            Some("h265") => args.extend(["-c:v".into(), "libx265".into()]),
-            Some("vp9") => args.extend(["-c:v".into(), "libvpx-vp9".into()]),
-            _ => {}
+        if let Some(c) = codec.as_deref() {
+            if !c.is_empty() {
+                args.extend(video_codec_args(c));
+            }
         }
 
         if let Some(br) = &bitrate {
@@ -796,6 +883,12 @@ pub struct Settings {
     pub default_video_format: String,
     pub default_audio_format: String,
     pub default_image_format: String,
+    /// Suffix appended to output file names (e.g. "_converted").
+    pub filename_suffix: String,
+    /// What to do when the output file already exists: "rename" | "overwrite".
+    pub conflict_strategy: String,
+    /// Hardware acceleration preference for video: "auto" | "hardware" | "software".
+    pub hw_acceleration: String,
 }
 
 impl Default for Settings {
@@ -807,6 +900,9 @@ impl Default for Settings {
             default_video_format: "mp4".to_string(),
             default_audio_format: "mp3".to_string(),
             default_image_format: "webp".to_string(),
+            filename_suffix: "_converted".to_string(),
+            conflict_strategy: "rename".to_string(),
+            hw_acceleration: "auto".to_string(),
         }
     }
 }
@@ -832,7 +928,26 @@ async fn get_settings(app: tauri::AppHandle) -> Result<Settings, String> {
     let default_image_format = store.get("default_image_format")
         .and_then(|v| v.as_str().map(String::from))
         .unwrap_or(d.default_image_format);
-    Ok(Settings { language, theme, output_dir, default_video_format, default_audio_format, default_image_format })
+    let filename_suffix = store.get("filename_suffix")
+        .and_then(|v| v.as_str().map(String::from))
+        .unwrap_or(d.filename_suffix);
+    let conflict_strategy = store.get("conflict_strategy")
+        .and_then(|v| v.as_str().map(String::from))
+        .unwrap_or(d.conflict_strategy);
+    let hw_acceleration = store.get("hw_acceleration")
+        .and_then(|v| v.as_str().map(String::from))
+        .unwrap_or(d.hw_acceleration);
+    Ok(Settings {
+        language,
+        theme,
+        output_dir,
+        default_video_format,
+        default_audio_format,
+        default_image_format,
+        filename_suffix,
+        conflict_strategy,
+        hw_acceleration,
+    })
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -844,6 +959,93 @@ async fn save_settings(app: tauri::AppHandle, settings: Settings) -> Result<(), 
     store.set("default_video_format", serde_json::json!(settings.default_video_format));
     store.set("default_audio_format", serde_json::json!(settings.default_audio_format));
     store.set("default_image_format", serde_json::json!(settings.default_image_format));
+    store.set("filename_suffix", serde_json::json!(settings.filename_suffix));
+    store.set("conflict_strategy", serde_json::json!(settings.conflict_strategy));
+    store.set("hw_acceleration", serde_json::json!(settings.hw_acceleration));
+    store.save().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+// ─── Output path helpers ───────────────────────────────────────────────────────
+
+/// Return a non-conflicting output path. If `path` does not exist it is returned
+/// unchanged; otherwise " (1)", " (2)", ... is inserted before the extension until
+/// a free name is found.
+#[tauri::command(rename_all = "snake_case")]
+async fn unique_output_path(path: String) -> Result<String, String> {
+    use std::path::Path;
+    let p = Path::new(&path);
+    if !p.exists() {
+        return Ok(path);
+    }
+    let parent = p.parent().map(|x| x.to_path_buf()).unwrap_or_default();
+    let stem = p
+        .file_stem()
+        .map(|s| s.to_string_lossy().to_string())
+        .unwrap_or_default();
+    let ext = p.extension().map(|s| s.to_string_lossy().to_string());
+
+    for n in 1..100_000u32 {
+        let candidate_name = match &ext {
+            Some(e) => format!("{} ({}).{}", stem, n, e),
+            None => format!("{} ({})", stem, n),
+        };
+        let candidate = parent.join(candidate_name);
+        if !candidate.exists() {
+            return Ok(candidate.to_string_lossy().to_string());
+        }
+    }
+    Err("Trop de fichiers en conflit".to_string())
+}
+
+// ─── Presets ───────────────────────────────────────────────────────────────────
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Preset {
+    pub id: String,
+    pub name: String,
+    pub media_type: String, // "image" | "video" | "audio"
+    pub settings: serde_json::Value,
+}
+
+const PRESETS_KEY: &str = "items";
+
+#[tauri::command(rename_all = "snake_case")]
+async fn get_presets(app: tauri::AppHandle) -> Result<Vec<Preset>, String> {
+    let store = app.store("presets.json").map_err(|e| e.to_string())?;
+    let items: Vec<Preset> = store
+        .get(PRESETS_KEY)
+        .and_then(|v| serde_json::from_value(v).ok())
+        .unwrap_or_default();
+    Ok(items)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+async fn save_preset(app: tauri::AppHandle, preset: Preset) -> Result<(), String> {
+    let store = app.store("presets.json").map_err(|e| e.to_string())?;
+    let mut items: Vec<Preset> = store
+        .get(PRESETS_KEY)
+        .and_then(|v| serde_json::from_value(v).ok())
+        .unwrap_or_default();
+    if let Some(existing) = items.iter_mut().find(|p| p.id == preset.id) {
+        *existing = preset;
+    } else {
+        items.push(preset);
+    }
+    store.set(PRESETS_KEY, serde_json::to_value(&items).map_err(|e| e.to_string())?);
+    store.save().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command(rename_all = "snake_case")]
+async fn delete_preset(app: tauri::AppHandle, id: String) -> Result<(), String> {
+    let store = app.store("presets.json").map_err(|e| e.to_string())?;
+    let mut items: Vec<Preset> = store
+        .get(PRESETS_KEY)
+        .and_then(|v| serde_json::from_value(v).ok())
+        .unwrap_or_default();
+    items.retain(|p| p.id != id);
+    store.set(PRESETS_KEY, serde_json::to_value(&items).map_err(|e| e.to_string())?);
     store.save().map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -944,9 +1146,14 @@ pub fn run() {
             get_image_info,
             convert_video_batch,
             convert_audio_batch,
+            detect_hw_encoders,
+            unique_output_path,
             open_folder,
             get_settings,
             save_settings,
+            get_presets,
+            save_preset,
+            delete_preset,
             get_history,
             add_history_item,
             clear_history,
@@ -1065,5 +1272,27 @@ mod tests {
         assert_eq!(s.default_video_format, "mp4");
         assert_eq!(s.default_audio_format, "mp3");
         assert_eq!(s.default_image_format, "webp");
+        assert_eq!(s.filename_suffix, "_converted");
+        assert_eq!(s.conflict_strategy, "rename");
+        assert_eq!(s.hw_acceleration, "auto");
+    }
+
+    // -- video_codec_args -------------------------------------------------------
+
+    #[test]
+    fn test_video_codec_args_simple() {
+        assert_eq!(video_codec_args("h264"), ["-c:v", "libx264"]);
+        assert_eq!(video_codec_args("h265"), ["-c:v", "libx265"]);
+        assert_eq!(video_codec_args("hevc"), ["-c:v", "libx265"]);
+        assert_eq!(video_codec_args("vp9"), ["-c:v", "libvpx-vp9"]);
+    }
+
+    #[test]
+    fn test_video_codec_args_passthrough() {
+        assert_eq!(video_codec_args("h264_nvenc"), ["-c:v", "h264_nvenc"]);
+        assert_eq!(
+            video_codec_args("hevc_videotoolbox"),
+            ["-c:v", "hevc_videotoolbox"]
+        );
     }
 }

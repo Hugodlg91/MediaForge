@@ -34,7 +34,9 @@
     "cancel": "Annuler",
     "done": "Conversion terminée !",
     "error": "Erreur",
-    "convert_another": "Convertir un autre fichier"
+    "convert_another": "Convertir un autre fichier",
+    "acceleration": "Accélération",
+    "noHwDetected": "Aucun encodeur GPU détecté — repli CPU"
   },
   "status": {
     "ready": "Prêt",
@@ -95,7 +97,23 @@
     "defaultImage": "Image",
     "about": "À propos",
     "version": "Version",
-    "localOnly": "100% local — aucune donnée envoyée"
+    "localOnly": "100% local — aucune donnée envoyée",
+    "filenameSuffix": "Suffixe du nom",
+    "conflictStrategy": "Si le fichier existe",
+    "conflictRename": "Renommer",
+    "conflictOverwrite": "Écraser",
+    "hwAcceleration": "Accélération vidéo",
+    "hwAuto": "Auto",
+    "hwGpu": "GPU",
+    "hwCpu": "CPU"
+  },
+  "presets": {
+    "label": "Presets",
+    "apply": "Appliquer",
+    "delete": "Supprimer",
+    "save": "Enregistrer",
+    "confirm": "OK",
+    "namePlaceholder": "Nom du preset"
   },
   "dropzone": {
     "label": "Déposez des fichiers ici ou cliquez pour parcourir",
