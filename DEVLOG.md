@@ -131,14 +131,71 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 - [x] Configuration des bundles cibles : `windows: { nsis: { installMode: "currentUser" } }`, `macOS` (dmg), `linux` (appimage, deb)
 - [x] Icônes de l'application générées : `npm run tauri icon resource/app-icon.png` (a remplacé les placeholders par les vrais formats `.ico`, `.icns`, `.png`)
 - [x] Vérification de la configuration : `cargo check` (0 erreur), `npm run build` (0 erreur)
+- [x] **Installeurs générés avec succès** :
+  - **NSIS (Recommandé)** : `src-tauri/target/release/bundle/nsis/MediaForge_1.0.0_x64-setup.exe`
+  - **MSI** : `src-tauri/target/release/bundle/msi/MediaForge_1.0.0_x64_en-US.msi`
 
-> **Instructions pour l'utilisateur** : 
-> Avant de lancer `npm run tauri build` pour générer votre installeur :
-> 1. Téléchargez les vrais exécutables de FFmpeg et FFprobe.
-> 2. Remplacez les stubs vides dans `src-tauri/binaries/` en gardant exactement le suffixe de votre plateforme (ex: `ffmpeg-x86_64-pc-windows-msvc.exe`).
-> 3. Exécutez `npm run tauri build` pour générer l'installeur dans `src-tauri/target/release/bundle/`.
+> **Instructions pour l'utilisateur concernant FFmpeg** : 
+> L'installeur actuel contient les *stubs vides* pour FFmpeg (car ce sont les fichiers présents dans `src-tauri/binaries/`). Pour avoir un installeur 100% fonctionnel, veuillez remplacer ces stubs par les vrais exécutables `ffmpeg-x86_64-pc-windows-msvc.exe` et relancer la commande de build.
 
----
+### ✅ Étape 10 — Audit & nettoyage du repo git (TERMINÉE)
+- [x] **Audit `git ls-files`** : liste complète des fichiers trackés examinée
+- [x] **Fichier supprimé du tracking** : `rustup-init.exe` (binaire setup ~30 Mo, n'a jamais sa place dans l'historique git)
+- [x] **Fichiers correctement exclus** (déjà absents du tracking) :
+  - `src-tauri/target/` — Rust build artifacts
+  - `node_modules/` — dépendances npm
+  - `src-tauri/binaries/ffmpeg-*.exe` — sidecar FFmpeg (seul `README.md` conservé ✅)
+  - `dist/` — build frontend Vite
+- [x] **`.gitignore` complété** avec les catégories manquantes :
+  - `src-tauri/target/` et `src-tauri/WixTools/`
+  - `dist/`, `build/`, `out/`
+  - `.env`, `.env.local`, `.env.*.local`
+  - `Thumbs.db`, `desktop.ini` (Windows)
+  - `*.key`, `*.pem` (ne jamais commiter les clés de signature)
+  - `build.log`, `final-build.log`
+  - `*.swp`, `*.swo`, `*.user` (IDE supplémentaires)
+- [x] **Commit de nettoyage** : `bf764a7` — "chore: cleanup gitignore and remove unnecessary tracked files"
+- [x] **Push sur `origin/main`** : `7846c2b..bf764a7`
+- [x] **Vérification finale** :
+  - `git status` → `nothing to commit, working tree clean` ✅
+  - `git ls-files *.exe` → vide ✅
+  - `git ls-files *.log` → vide ✅
+  - `src-tauri/binaries/README.md` toujours présent ✅
+
+
+### ✅ Étape 10b — Suppression des fichiers scaffold inutiles (TERMINÉE)
+- [x] **Vérification des références** : `tauri.svg` et `react.svg` non référencés dans le code ; `vite.svg` uniquement utilisé comme favicon dans `index.html` → favicon remplacé par `src-tauri/icons/icon.png`
+- [x] **Fichiers désindexés** (`git rm --cached`) :
+  - `scripts/ui-refactor.mjs` + `ui-refactor2.mjs` + `ui-refactor3.mjs` + `ui-refactor4.mjs` (scripts ponctuels déjà appliqués)
+  - `public/tauri.svg`, `public/vite.svg` (assets scaffold Tauri/Vite)
+  - `src/assets/react.svg` (asset scaffold React)
+- [x] **`.gitignore` mis à jour** : entrées ajoutées pour `scripts/`, `public/tauri.svg`, `public/vite.svg`, `src/assets/react.svg`
+- [x] **`index.html`** : favicon mis à jour de `vite.svg` → `src-tauri/icons/icon.png`
+- [x] **Commit `9af2e4d`** poussé sur `origin/main` : `abb8f35..9af2e4d`
+- [x] **Vérification** : fichiers toujours présents en local ✅ — absents du tracking git ✅ — `git status` propre ✅
+- [x] `arbo.md` créé à la racine — arborescence complète du projet versionnée
+
+### ✅ README.md — Documentation professionnelle (TERMINÉE)
+- [x] Remplacement du template scaffold `create-tauri-app` par une documentation complète en anglais
+- [x] En-tête avec badges (version, plateforme, Tauri)
+- [x] Description : ce que fait l'app + argument privacy (100% local, no upload, no account)
+- [x] Fonctionnalités détaillées : Image / Vidéo / Audio / Général
+- [x] Tableau stack technique (Tauri v2, React, TypeScript, Vite, Tailwind, FFmpeg, image crate, plugin-store, Vitest)
+- [x] Section développeur : prérequis, `npm install`, `npm run tauri dev`, `npm test`, `npm run tauri build`
+- [x] Tableau installeurs par plateforme (Windows NSIS + MSI, macOS dmg, Linux AppImage + deb)
+- [x] Lien vers `arbo.md` pour la structure du projet
+- [x] Licence propriétaire (© 2026 MediaForge)
+- [x] Commit `27998ae` poussé sur `origin/main`
+
+### ✅ LICENSE — Licence MIT (TERMINÉE)
+- [x] Fichier `LICENSE` créé à la racine du projet
+- [x] Licence : **MIT License** (Copyright 2026 MediaForge)
+- [x] Remplacement de la licence propriétaire initiale par la licence MIT standard
+- [x] Commit poussé sur `origin/main`
+
+### ✅ Mise à jour licence → MIT + Commons Clause (TERMINÉE)
+- [x] `LICENSE` : ajout de la clause Commons Clause — interdit la revente commerciale par des tiers tout en conservant la liberté d'usage personnel et de contribution
+- [x] `README.md` : section licence mise à jour → "MIT + Commons Clause — © 2026 VladimirWRLD / Free to use and contribute — commercial resale prohibited."
 
 ### ✅ Étape 11 — Migration data-theme & refonte UI complète (TERMINÉE)
 - [x] **Migration thème** : `applyTheme()` dans `useSettings.ts` → `setAttribute("data-theme", theme)` (replaces `classList.add("dark")`)
@@ -152,6 +209,34 @@ Après TOUTE tâche, mettre ce fichier à jour immédiatement.
 - [x] **SettingsPage** : 3 section cards, composant `PillSelect` pour tous les selects, max-width 520px
 - [x] **Converters (Image/Vidéo/Audio)** : headers Syne 22px + sous-titre muted, 0 emoji, icônes IMG/VID/AUD
 - [x] `npx tsc --noEmit` : **0 erreur TypeScript** — `npm run build` : **0 erreur** (95 modules, 339 kB JS)
+
+### ✅ Étape 12 — Refonte visuelle complète (UI Refactor) (TERMINÉE)
+- [x] **Système de design** : tokens CSS sémantiques enrichis — `--surface3`, `--border2`, `--text-sub`, `--shadow-sm` ajoutés ; vert succès `#10B981` (`--success`) ; hiérarchie typographique 9/10/11/12/13/14/24px
+- [x] **SVG Icons** : nouveau composant `src/components/ui/Icons.tsx` — IcnImage, IcnVideo, IcnAudio, IcnHistory, IcnSettings, IcnUpload, IcnCheck, IcnX, IcnChevronDown, IcnChevronRight, IcnFolder, IcnRefresh (stroke-based, 24×24 viewBox, props size/color/strokeWidth)
+- [x] **Sidebar** : icônes SVG au-dessus du label abrégé (3 lettres) ; boutons 52px full-width ; état actif = `--accent-dim` bg + barre verticale 3×24px à gauche ; hover identique sans la barre
+- [x] **DropZone** : `IcnUpload` dans une boîte 56×56px `--accent-dim` ; bordure 2px dashed `--border2` → `--accent` au hover/drag ; bg `--surface2` → `--accent-dim`
+- [x] **ConversionResult** : card success avec `rgba(16,185,129,0.06)` bg + `IcnCheck` vert dans cercle ; `.btn-ghost` ouvrir dossier + `.btn-primary` nouvelle conversion
+- [x] **ProgressBar** : wrapper `.card` ; barre dégradée `--accent → --accent-hover` ; `.btn-ghost` annuler
+- [x] **VideoConverter / AudioConverter** : `.seg-ctrl` mode toggle ; batch list avec `IcnCheck`/`IcnX`/`IcnFolder` ; `.btn-primary`/`.btn-ghost` ; `.card`/`.fmt-pill` options ; `IcnChevronRight` animé pour advanced toggle
+- [x] **History** : grid `auto 1fr auto auto` ; badge type 32×32px avec IcnImage/Video/Audio coloré ; `IcnCheck` vert inline ; `.btn-ghost` actions ; `box-shadow: var(--shadow-sm)`
+- [x] **SettingsPage** : `PillSelect` avec `IcnChevronDown` SVG (rotation 180° à l'ouverture) ; `ThemeToggle` via `.seg-ctrl` ; `SectionCard` avec `--shadow-sm` ; `IcnFolder` + `IcnX` dans output dir ; `IcnCheck` dans badge "100% local"
+- [x] **Classes utilitaires** : `.btn-primary`, `.btn-ghost`, `.btn-danger`, `.seg-ctrl`, `.card`, `.fmt-pill`, `.section-label` définies dans `index.css`, utilisées partout
+- [x] **Police offline** : stack système `ui-sans-serif, system-ui, -apple-system, sans-serif` (suppression Google Fonts CDN, respect contrainte 100% offline)
+- [x] `npm run build` : **0 erreur TypeScript** (96 modules, 343 kB JS)
+
+### ✅ Étape 13 — CI/CD GitHub Actions (Release multi-plateforme) (TERMINÉE)
+- [x] `.github/workflows/release.yml` créé — déclenché sur push de tag `v*`
+- [x] **Matrix strategy** : 3 runners en parallèle — `windows-latest`, `macos-latest`, `ubuntu-22.04`
+- [x] **Setup** : Node.js 20, Rust stable, Swatinem/rust-cache (cache Cargo par plateforme)
+- [x] **FFmpeg Windows** : téléchargement depuis gyan.dev (ffmpeg-release-essentials.zip), extraction PowerShell, renommage au format Tauri (`ffmpeg-x86_64-pc-windows-msvc.exe`)
+- [x] **FFmpeg macOS** : `brew install ffmpeg`, copie + chmod vers `ffmpeg-aarch64-apple-darwin` (compatible ARM et Intel via `which ffmpeg`)
+- [x] **FFmpeg Linux** : build statique John Van Sickle (ffmpeg-release-amd64-static.tar.xz), renommage vers `ffmpeg-x86_64-unknown-linux-gnu`, chmod +x
+- [x] **Dépendances Linux** : libgtk-3-dev, libwebkit2gtk-4.1-dev, libappindicator3-dev, librsvg2-dev, patchelf, libxdo-dev, libssl-dev
+- [x] **tauri-apps/tauri-action@v0** : build + création release draft automatique, `args: --target aarch64-apple-darwin` pour macOS
+- [x] **Release** : draft (relecture avant publication), corps incluant tableau téléchargements + lien CHANGELOG
+- [x] **Permissions** : `contents: write` au niveau workflow (requis pour créer la release GitHub)
+- [x] **CHANGELOG.md** créé à la racine avec le contenu v1.0.0
+- [x] **FUNDING.yml** : `.github/FUNDING.yml` créé — bouton "Sponsor" Ko-fi (`VladimirWRLD`) affiché sur le repo GitHub
 
 ---
 

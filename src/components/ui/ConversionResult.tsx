@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
+import { IcnCheck, IcnFolder } from "./Icons";
 
 interface ConversionResultProps {
   outputPath: string;
@@ -9,13 +10,11 @@ interface ConversionResultProps {
 
 export function ConversionResult({ outputPath, onNewConversion }: ConversionResultProps) {
   const { t } = useTranslation();
-  const fileName = outputPath.split(/[\\/]/).pop() ?? outputPath;
+  const fileName = outputPath.split(/[\/]/).pop() ?? outputPath;
 
   const handleOpenFolder = useCallback(async () => {
     try {
-      await invoke("open_folder", {
-        filePath: outputPath,
-      } as unknown as Record<string, unknown>);
+      await invoke("open_folder", { filePath: outputPath } as unknown as Record<string, unknown>);
     } catch (e) {
       console.error("open_folder error:", e);
     }
@@ -23,26 +22,52 @@ export function ConversionResult({ outputPath, onNewConversion }: ConversionResu
 
   return (
     <div className="flex flex-col gap-3 animate-fade-in">
-      <div className="flex items-center justify-between bg-green-950/30 border border-green-900/50 rounded-xl p-4">
-        <div className="min-w-0 flex-1">
-          <div className="text-[10px] text-green-400 font-bold tracking-widest mb-1">
-            {t("result.success").toUpperCase()}
-          </div>
-          <p className="text-gray-400 text-xs truncate" title={outputPath}>{fileName}</p>
-        </div>
-        <button
-          onClick={handleOpenFolder}
-          className="shrink-0 ml-4 px-3 py-1.5 border border-gray-700 hover:border-gray-600 text-gray-300 text-[10px] rounded-lg transition-colors tracking-wider"
+      {/* Success card */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          background: "rgba(16, 185, 129, 0.06)",
+          border: "1px solid rgba(16, 185, 129, 0.25)",
+          borderRadius: "12px",
+          padding: "14px 16px",
+        }}
+      >
+        {/* Check icon */}
+        <div
+          style={{
+            width: "32px",
+            height: "32px",
+            borderRadius: "50%",
+            background: "rgba(16, 185, 129, 0.12)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            color: "var(--success)",
+          }}
         >
-          {t("result.openFolder").toUpperCase()}
+          <IcnCheck size={16} strokeWidth={2.5} />
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ fontSize: "11px", fontWeight: 700, color: "var(--success)", letterSpacing: "0.06em", marginBottom: "2px" }}>
+            {t("result.success").toUpperCase()}
+          </p>
+          <p style={{ fontSize: "12px", color: "var(--text-sub)" }} className="truncate" title={outputPath}>
+            {fileName}
+          </p>
+        </div>
+
+        <button className="btn-ghost" onClick={handleOpenFolder} style={{ flexShrink: 0, gap: "6px" }}>
+          <IcnFolder size={14} />
+          {t("result.openFolder")}
         </button>
       </div>
-      <button
-        onClick={onNewConversion}
-        className="w-fit px-5 py-2 bg-indigo-600 hover:opacity-90 active:scale-[0.98] text-white text-xs font-bold rounded-lg transition-all tracking-wider"
-        style={{ fontFamily: "'Syne', sans-serif" }}
-      >
-        {t("result.newConversion").toUpperCase()}
+
+      <button className="btn-primary" onClick={onNewConversion} style={{ width: "fit-content" }}>
+        {t("result.newConversion")}
       </button>
     </div>
   );
